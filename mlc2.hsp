@@ -1,46 +1,121 @@
 ; ref)
 ; xmlの取り扱い https://blog.goo.ne.jp/hiro239415/e/eef677773c3e3e2b4a10be2f8d69c87c
 ; exeアイコンの取り出し http://lhsp.s206.xrea.com/hsp_file.html
+; マウスカーソルの取得 http://antares.cn/hsp/sample/index.html#mouse
+
+#module
+#defcfunc getMx
+	prmx=ginfo_sizex: frameW=(prmx-320)/2 ;補正値の計算
+	prmx=ginfo_wx1:   left=prmx+frameW    ;原点のスクリーン座標
+	prmx=ginfo_mx:    mx=prmx-left        ;スクリーン座標→ウィンドウ座標
+	return mx
+#defcfunc getMy
+	prmx=ginfo_sizex:    prmy=ginfo_sizey
+	frameW=(prmx-320)/2: titleH=prmy-320-frameW ;補正値の計算
+	prmy=ginfo_wy1:      top=prmy+titleH        ;原点のスクリーン座標
+	prmy=ginfo_my:       my=prmy-top            ;スクリーン座標→ウィンドウ座標
+	return my
+#global
 
 	; API読み込み
-	#uselib "gdi32" 
-	#cfunc CreateEllipticRgn "CreateEllipticRgn" int, int, int, int
-	#uselib "user32"
-	#func SetWindowRgn "SetWindowRgn" int, int, int
-	#func DrawIcon "DrawIcon" sptr, sptr, sptr, sptr
-	#func DestroyIcon "DestroyIcon" sptr
-	#uselib "shell32"
-	#func SHGetFileInfo "SHGetFileInfo" sptr, sptr, sptr, sptr, sptr
+#uselib "gdi32" 
+#cfunc CreateEllipticRgn "CreateEllipticRgn" int, int, int, int
+#uselib "user32"
+#func SetWindowRgn "SetWindowRgn" int, int, int
+#func DrawIcon "DrawIcon" sptr, sptr, sptr, sptr
+#func DestroyIcon "DestroyIcon" sptr
+#func EnableWindow "EnableWindow" int, int
+#uselib "shell32"
+#func SHGetFileInfo "SHGetFileInfo" sptr, sptr, sptr, sptr, sptr
 
-	; XML読み込み
-	axobj MSXML2, "MSXML2.DOMDocument", 0, 0
-	MSXML2("async") = 0
-	MSXML2->"load" "mlc2.xml"
-
-	xmlRoot = MSXML2("documentElement")
-
-	comres itemList
-	xmlRoot->"getElementsByTagName" "item"
-	itemLen = itemList("length")
+	; どのウィンドウであれ、閉じるボタンが押された時を検出
+	onexit gosub *onclose
+	oncstat = 0
 
 	; 円形ウィンドウ作成
-	bgscr 0, 320, 320
+	x = ginfo_mx - 160
+	y = ginfo_my - 160
+	if x < 0 :x = 0
+	if x > (ginfo_dispx - 320) :x = ginfo_dispx - 320
+	if y < 0 :y = 0
+	if y > (ginfo_dispy - 320) :y = ginfo_dispy - 320
+	bgscr 0, 320, 320, 0, x, y
 	hRgn = CreateEllipticRgn (0, 0, 320, 320)
 	SetWindowRgn hwnd, hRgn, 1
 	cls 0
 
-	; 一時バッファ
 	buffer 1, 480, 96, 0
 	gsel 1
 	cls 0
 	gsel 0
 
 	dim SHFILEINFO, 88
-	gosub *geticon
+
+	; XML読み込み
+	axobj MSXML2, "MSXML2.DOMDocument", 0, 0
+	MSXML2("async") = 0
+
+	MSXML2->"load" "mlc2.xml"
+
+	xmlRoot = MSXML2("documentElement")
+
+	gosub *getxml
+
+	; アイテム編集画面の作成
+	screen 3, 320, 240, 2
+	cls 0
+
+	objmode 2, 1
+	color 0, 0, 0
+	font msgothic, 16
+
+	pos 16, 16
+	font msgothic, 16
+	mes "名前"
+	pos 56, 16
+	font msgothic, 12
+	editName = ""
+	input editName, 248, 16, 32
+	idEditName = stat
+	pos 16, 40
+	font msgothic, 16
+	mes "場所"
+	pos 56, 40
+	font msgothic, 12
+	editPath = ""
+	input editPath, 208, 16, 1024
+	idEditPath = stat
+	pos 272, 38
+	objsize 32, 20
+	button gosub "参照", *callLocation
+	pos 16, 64
+	font msgothic, 16
+	mes "画像"
+	pos 56, 64
+	font msgothic, 12
+	editIcon = ""
+	input editIcon, 208, 16, 1024
+	idEditIcon = stat
+	pos 272, 62
+	objsize 32, 20
+	button gosub "参照", *callIconLocation
+	pos 96, 88
+	objsize 64, 32
+	font msgothic, 16
+	button gosub "登録", *registItem
+
+;-------------------------------------------------------------------------------
+;          ;
+*mainlabel ; メイン
+;          ;
+;-------------------------------------------------------------------------------
+
+	gsel 0
 
 	repeat
 		gosub *drawing
-		await 100
+		gosub *event
+		wait 5
 	loop
 
 *drawing
@@ -57,16 +132,6 @@
 		line 160, 160, x, y
 
 		if cnt < itemLen {
-			; XML属性取得
-			comres itemData
-			xmlRoot->"ChildNodes" cnt
-			comres itemName
-			itemData->"GetAttribute" "name"
-			comres itemPath
-			itemData->"GetAttribute" "path"
-			;comres itemIco
-			;itemData->"GetAttribute" "ico"
-
 			; アイコン描画
 			x = 144 + int(120.0 * cos(radIco))
 			y = 144 + int(120.0 * sin(radIco))
@@ -74,34 +139,163 @@
 			gcopy 1, 32 * cnt, 0, 32, 32
 		} else {
 			; 新規
-			itemName = ""
-			itemPath = ""
-			itemIco = ""
 		}
 	loop
 
 	redraw 1
+	return
+
+*event
+	stick onc
+	if onc & 256 {
+		x = getMx()
+		y = getMy()
+
+		t = atan(y - 160, x - 160)
+		t += M_PI / 2
+		if t < 0 :t += 2 * M_PI
+
+		i = int(t * (itemLen + 1) / (2 * M_PI))
+		if ( i < itemLen ) {
+			exec itemPath(i)
+		} else {
+			dialog "", 16
+			if stat = 1 {
+				argName = ""
+				argPath = refstr
+				argIcon = refstr
+				gosub *itemedit
+			}
+		}
+	}
+	return
+
+;------------------+
+; アイテム編集画面 |
+;------------------+
+*itemedit
+	gsel 0
+	EnableWindow hwnd, 0 ; 自ウィンドウを無効にする。
+
+	gsel 3, -1
+	width , , ginfo_mx - 160, ginfo_my - 120
+	gsel 3, 2
+	objprm idEditName, argName
+	objprm idEditPath, argPath
+	objprm idEditIcon, argIcon
+
+	color 255, 255, 255
+	boxf 56, 88, 88, 120
+	if argIcon != "" {
+		gosub *repaintIcon
+	}
+
+	repeat
+		getkey ev, 27
+		if (ev = 1)|(oncstat = 1) :break
+		wait 5
+	loop
+	oncstat = 0
+
+	gsel 3, -1
+	gsel 0, 2
+	EnableWindow hwnd, 1
+	return
+
+*callLocation
+	dialog "", 16
+	if stat = 1 {
+		objprm idEditPath, refstr
+	}
+	return
+
+*callIconLocation
+	dialog "", 16
+	if stat = 1 {
+		argIcon = refstr
+		objprm idEditIcon, argIcon
+
+		color 255, 255, 255
+		boxf 56, 88, 88, 120
+		gosub *repaintIcon
+		redraw 1
+	}
+	return
+
+*repaintIcon
+	SHGetFileInfo argIcon, 0, varptr(SHFILEINFO), $160, $500
+	x = 56
+	y = 88
+	DrawIcon hdc, x, y, SHFILEINFO.0
+	DestroyIcon SHFILEINFO.0
 
 	return
 
-*geticon
+*registItem
+	gosub *setnewitem
+	gosub *getxml
+	oncstat = 1
+	return
+
+;-------------------+
+; XML情報の読み込み |
+;-------------------+
+*getxml
+	comres itemList
+	xmlRoot->"getElementsByTagName" "item"
+	itemLen = itemList("length")
+
+	sdim itemName, 1024, itemLen
+	sdim itemPath, 1024, itemLen
+
 	gsel 1
 	repeat itemLen
 		; XML属性取得
 		comres itemData
 		xmlRoot->"ChildNodes" cnt
+		comres itemName(cnt)
+		itemData->"GetAttribute" "name"
+		comres itemPath(cnt)
+		itemData->"GetAttribute" "path"
 		comres itemIco
 		itemData->"GetAttribute" "ico"
 
-		; アイコン描画
+		; アイコン取得
 		SHGetFileInfo itemIco, 0, varptr(SHFILEINFO), $160, $500
 		x = 32 * cnt
 		y = 0
 		DrawIcon hdc, x, y, SHFILEINFO.0
 		DestroyIcon SHFILEINFO.0
 	loop
+	itemName(itemLen) = "新規"
+	itemPath(itemLen) = ""
 
 	gsel 0
+	return
+
+*setnewitem
+	comres newItem
+	MSXML2->"createElement" "item"
+	comres tmp
+	newItem->"setAttribute" "name", editName
+	newItem->"setAttribute" "path", editPath
+	newItem->"setAttribute" "ico", editIcon
+
+	comres itemData
+	xmlRoot->"ChildNodes" itemLen-1
+	dialog "D"
+	xmlRoot->"insertBefore" newItem, itemData
+	dialog "E"
+	MSXML2->"save" "mlc2.xml"
+
+	return
+
+
+
+
+*onclose
+	if ginfo_act = 0 :end
+	oncstat = 1
 	return
 
 stop
