@@ -1,0 +1,83 @@
+; ref)
+; xmlの取り扱い https://blog.goo.ne.jp/hiro239415/e/eef677773c3e3e2b4a10be2f8d69c87c
+; exeアイコンの取り出し http://lhsp.s206.xrea.com/hsp_file.html
+
+	; API読み込み
+	#uselib "gdi32" 
+	#cfunc CreateEllipticRgn "CreateEllipticRgn" int, int, int, int
+	#uselib "user32"
+	#func SetWindowRgn "SetWindowRgn" int, int, int
+	#func DrawIcon "DrawIcon" sptr, sptr, sptr, sptr
+	#func DestroyIcon "DestroyIcon" sptr
+	#uselib "shell32"
+	#func SHGetFileInfo "SHGetFileInfo" sptr, sptr, sptr, sptr, sptr
+
+	; XML読み込み
+	axobj MSXML2, "MSXML2.DOMDocument", 0, 0
+	MSXML2("async") = 0
+	MSXML2->"load" "mlc2.xml"
+
+	xmlRoot = MSXML2("documentElement")
+
+	comres itemList
+	xmlRoot->"getElementsByTagName" "item"
+	itemLen = itemList("length")
+
+	; 円形ウィンドウ作成
+	bgscr 0, 320, 320
+	hRgn = CreateEllipticRgn (0, 0, 320, 320)
+	SetWindowRgn hwnd, hRgn, 1
+	cls 0
+
+	dim SHFILEINFO, 88
+
+	repeat
+		gosub *drawing
+		await 100
+	loop
+
+*drawing
+	redraw 2
+	cls 0
+
+	repeat itemLen + 1
+		; 描画
+		radLine = deg2rad(360 * cnt / (itemLen+1) - 90)
+		radIco = deg2rad(360 * cnt / (itemLen+1) - 45)
+		x = 160 + int(160.0 * cos(radLine))
+		y = 160 + int(160.0 * sin(radLine))
+		color 0, 0, 0
+		line 160, 160, x, y
+
+		if cnt < itemLen {
+			; XML属性取得
+			comres itemData
+			xmlRoot->"ChildNodes" cnt
+			comres itemName
+			itemData->"GetAttribute" "name"
+			comres itemPath
+			itemData->"GetAttribute" "path"
+			comres itemIco
+			itemData->"GetAttribute" "ico"
+
+			; アイコン描画
+			SHGetFileInfo itemIco, 0, varptr(SHFILEINFO), $160, $500
+			x = 144 + int(120.0 * cos(radIco))
+			y = 144 + int(120.0 * sin(radIco))
+			DrawIcon hdc, x, y, SHFILEINFO.0
+			DestroyIcon SHFILEINFO.0
+		} else {
+			; 新規
+			itemName = ""
+			itemPath = ""
+			itemIco = ""
+		}
+	loop
+
+	redraw 1
+
+	return
+
+
+
+stop
