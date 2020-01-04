@@ -32,6 +32,8 @@
 	onexit gosub *onclose
 	oncstat = 0
 
+	curdir = dir_cur
+
 	; 円形ウィンドウ作成
 	x = ginfo_mx - 160
 	y = ginfo_my - 160
@@ -283,9 +285,8 @@
 
 	comres itemData
 	xmlRoot->"ChildNodes" itemLen-1
-	dialog "D"
 	xmlRoot->"insertBefore" newItem, itemData
-	dialog "E"
+	chdir curdir
 	MSXML2->"save" "mlc2.xml"
 
 	return
