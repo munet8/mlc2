@@ -1,0 +1,15 @@
+[item]
+name=Internet Explorer
+path=C:\Program Files (x86)\Internet Explorer\iexplore.exe
+icon=C:\Program Files (x86)\Internet Explorer\iexplore.exe
+type=exe
+[item]
+name=ÉÅÉÇí†
+path=notepad.exe
+icon=C:\Windows\system32\notepad.exe
+type=exe
+[item]
+name=ÉyÉCÉìÉg
+path=mspaint.exe
+icon=C:\Windows\system32\mspaint.exe
+type=exe

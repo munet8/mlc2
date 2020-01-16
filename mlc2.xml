@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<mlc>
-  <item name="Internet Explorer" path="C:\Program Files (x86)\Internet Explorer\iexplore.exe" ico="C:\Program Files (x86)\Internet Explorer\iexplore.exe" />
-  <item name="メモ帳" path="notepad.exe" ico="C:\Windows\system32\notepad.exe" />
-  <item name="ペイント" path="mspaint.exe" ico="C:\Windows\system32\mspaint.exe" />
-</mlc>

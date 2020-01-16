@@ -1,5 +1,4 @@
 ; ref)
-; xmlの取り扱い https://blog.goo.ne.jp/hiro239415/e/eef677773c3e3e2b4a10be2f8d69c87c
 ; exeアイコンの取り出し http://lhsp.s206.xrea.com/hsp_file.html
 ; マウスカーソルの取得 http://antares.cn/hsp/sample/index.html#mouse
 
@@ -15,6 +14,13 @@
 	prmy=ginfo_wy1:      top=prmy+titleH        ;原点のスクリーン座標
 	prmy=ginfo_my:       my=prmy-top            ;スクリーン座標→ウィンドウ座標
 	return my
+
+#defcfunc isExecutable str s
+	i = 1
+	t = s
+	if strmid(t, -1, 4) = ".exe" :i = 0
+	return i
+
 #global
 
 	; API読み込み
@@ -57,11 +63,7 @@
 	axobj MSXML2, "MSXML2.DOMDocument", 0, 0
 	MSXML2("async") = 0
 
-	MSXML2->"load" "mlc2.xml"
-
-	xmlRoot = MSXML2("documentElement")
-
-	gosub *getxml
+	gosub *getdat
 
 	; アイテム編集画面の作成
 	screen 3, 320, 240, 2
@@ -92,7 +94,7 @@
 	button gosub "参照", *callLocation
 	pos 16, 64
 	font msgothic, 16
-	mes "画像"
+	mes "Icon"
 	pos 56, 64
 	font msgothic, 12
 	editIcon = ""
@@ -101,7 +103,17 @@
 	pos 272, 62
 	objsize 32, 20
 	button gosub "参照", *callIconLocation
-	pos 96, 88
+	pos 16, 88
+	font msgothic, 16
+	mes "種別"
+	pos 56, 86
+	font msgothic, 12
+	editType = 0
+	objsize 80, 20
+	combox editType, 40, "実行形式\nファイル"
+	idEditType = stat
+
+	pos 96, 112
 	objsize 64, 32
 	font msgothic, 16
 	button gosub "登録", *registItem
@@ -127,7 +139,7 @@
 	repeat itemLen + 1
 		; 描画
 		radLine = deg2rad(360 * cnt / (itemLen+1) - 90)
-		radIco = deg2rad(360 * cnt / (itemLen+1) - 45)
+		radIco = deg2rad(360 * cnt / (itemLen+1) - 90 + (180 / (itemLen+1)))
 		x = 160 + int(160.0 * cos(radLine))
 		y = 160 + int(160.0 * sin(radLine))
 		color 0, 0, 0
@@ -148,28 +160,35 @@
 	return
 
 *event
-	stick onc
-	if onc & 256 {
+	stick ev
+	if ev & 256 {
 		x = getMx()
 		y = getMy()
 
-		t = atan(y - 160, x - 160)
-		t += M_PI / 2
-		if t < 0 :t += 2 * M_PI
+		th = atan(y - 160, x - 160)
+		th += M_PI / 2
+		if th < 0 :th += 2 * M_PI
 
-		i = int(t * (itemLen + 1) / (2 * M_PI))
-		if ( i < itemLen ) {
-			exec itemPath(i)
+		i = int(th * (itemLen + 1) / (2 * M_PI))
+		if i < itemLen {
+			if itemType(i) == "exe" {
+				exec itemPath(i)
+			} else {
+				exec itemPath(i), 16
+			}
 		} else {
 			dialog "", 16
-			if stat = 1 {
+			if stat == 1 {
 				argName = ""
 				argPath = refstr
 				argIcon = refstr
+				argType = isExecutable(refstr)
 				gosub *itemedit
 			}
 		}
-	}
+	} else { if ev & 512 {
+		end
+	}}
 	return
 
 ;------------------+
@@ -185,9 +204,10 @@
 	objprm idEditName, argName
 	objprm idEditPath, argPath
 	objprm idEditIcon, argIcon
+	objprm idEditType, argType
 
 	color 255, 255, 255
-	boxf 56, 88, 88, 120
+	boxf 56, 112, 88, 152
 	if argIcon != "" {
 		gosub *repaintIcon
 	}
@@ -208,6 +228,7 @@
 	dialog "", 16
 	if stat = 1 {
 		objprm idEditPath, refstr
+		objprm idEditType, isExecutable(refstr)
 	}
 	return
 
@@ -218,7 +239,7 @@
 		objprm idEditIcon, argIcon
 
 		color 255, 255, 255
-		boxf 56, 88, 88, 120
+		boxf 56, 112, 88, 152
 		gosub *repaintIcon
 		redraw 1
 	}
@@ -227,7 +248,7 @@
 *repaintIcon
 	SHGetFileInfo argIcon, 0, varptr(SHFILEINFO), $160, $500
 	x = 56
-	y = 88
+	y = 112
 	DrawIcon hdc, x, y, SHFILEINFO.0
 	DestroyIcon SHFILEINFO.0
 
@@ -235,59 +256,66 @@
 
 *registItem
 	gosub *setnewitem
-	gosub *getxml
+	gosub *getdat
 	oncstat = 1
 	return
 
 ;-------------------+
-; XML情報の読み込み |
+; Dat情報の読み込み |
 ;-------------------+
-*getxml
-	comres itemList
-	xmlRoot->"getElementsByTagName" "item"
-	itemLen = itemList("length")
-
-	sdim itemName, 1024, itemLen
-	sdim itemPath, 1024, itemLen
+*getdat
+	notesel nt
+	noteload "mlc2.dat"
 
 	gsel 1
-	repeat itemLen
-		; XML属性取得
-		comres itemData
-		xmlRoot->"ChildNodes" cnt
-		comres itemName(cnt)
-		itemData->"GetAttribute" "name"
-		comres itemPath(cnt)
-		itemData->"GetAttribute" "path"
-		comres itemIco
-		itemData->"GetAttribute" "ico"
 
-		; アイコン取得
-		SHGetFileInfo itemIco, 0, varptr(SHFILEINFO), $160, $500
-		x = 32 * cnt
-		y = 0
-		DrawIcon hdc, x, y, SHFILEINFO.0
-		DestroyIcon SHFILEINFO.0
+	itemLen = 0
+	repeat noteinfo(0)
+		noteget s, cnt
+		if s == "[item]" :itemLen++
 	loop
-	itemName(itemLen) = "新規"
-	itemPath(itemLen) = ""
+
+	sdim itemName, 32, itemLen
+	sdim itemPath, 1024, itemLen
+	sdim itemType, 8, itemLen
+
+	len = -1
+	repeat noteinfo(0)
+		noteget s, cnt
+		t = strmid(s, 0, 5)
+		if s == "[item]" :len++
+		if t == "name=" :itemName(len) = strmid(s, 5, 32)
+		if t == "path=" :itemPath(len) = strmid(s, 5, 1024)
+		if t == "icon=" {
+			; アイコン取得
+			SHGetFileInfo strmid(s, 5, 1024), 0, varptr(SHFILEINFO), $160, $500
+			x = 32 * len
+			y = 0
+			DrawIcon hdc, x, y, SHFILEINFO.0
+			DestroyIcon SHFILEINFO.0
+		}
+		if t == "type=" :itemType(len) = strmid(s, 5, 8)
+
+	loop
+
+	len++
+	itemName(len) = ""
+	itemPath(len) = ""
+	itemType(len) = ""
 
 	gsel 0
 	return
 
 *setnewitem
-	comres newItem
-	MSXML2->"createElement" "item"
-	comres tmp
-	newItem->"setAttribute" "name", editName
-	newItem->"setAttribute" "path", editPath
-	newItem->"setAttribute" "ico", editIcon
+	noteadd "[item]", -1, 0
+	noteadd "name=" + editName, -1, 0
+	noteadd "path=" + editPath, -1, 0
+	noteadd "icon=" + editIcon, -1, 0
+	if editType == 0 :s = "exe" :else :s = "file"
+	noteadd "type=" + s, -1, 0
 
-	comres itemData
-	xmlRoot->"ChildNodes" itemLen-1
-	xmlRoot->"insertBefore" newItem, itemData
 	chdir curdir
-	MSXML2->"save" "mlc2.xml"
+	notesave "mlc2.dat"
 
 	return
 
