@@ -34,6 +34,12 @@
 #uselib "shell32"
 #func SHGetFileInfo "SHGetFileInfo" sptr, sptr, sptr, sptr, sptr
 
+;-------------------------------------------------------------------------------
+;          ;
+           ; 初期化処理
+;          ;
+;-------------------------------------------------------------------------------
+
 	; どのウィンドウであれ、閉じるボタンが押された時を検出
 	onexit gosub *onclose
 	oncstat = 0
@@ -172,7 +178,9 @@
 		i = int(th * (itemLen + 1) / (2 * M_PI))
 		if i < itemLen {
 			if itemType(i) == "exe" {
+				chdir getpath(itemPath(i), 32)
 				exec itemPath(i)
+				chdir curdir
 			} else {
 				exec itemPath(i), 16
 			}
@@ -265,6 +273,7 @@
 ;-------------------+
 *getdat
 	notesel nt
+	chdir curdir
 	noteload "mlc2.dat"
 
 	gsel 1
