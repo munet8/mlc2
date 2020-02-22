@@ -166,16 +166,17 @@
 	return
 
 *event
+	x = getMx()
+	y = getMy()
+
+	th = atan(y - 160, x - 160)
+	th += M_PI / 2
+	if th < 0 :th += 2 * M_PI
+
+	i = int(th * (itemLen + 1) / (2 * M_PI))
+
 	stick ev
 	if ev & 256 {
-		x = getMx()
-		y = getMy()
-
-		th = atan(y - 160, x - 160)
-		th += M_PI / 2
-		if th < 0 :th += 2 * M_PI
-
-		i = int(th * (itemLen + 1) / (2 * M_PI))
 		if i < itemLen {
 			if itemType(i) == "exe" {
 				chdir getpath(itemPath(i), 32)
@@ -187,6 +188,7 @@
 		} else {
 			dialog "", 16
 			if stat == 1 {
+				argIndex = -1 ; 新規
 				argName = ""
 				argPath = refstr
 				argIcon = refstr
@@ -195,7 +197,17 @@
 			}
 		}
 	} else { if ev & 512 {
-		end
+		if i < itemLen {
+			argIndex = i ; 編集
+			argName = itemName(i)
+			argPath = itemPath(i)
+			argIcon = itemIcon(i)
+			if itemType(i) = "exe"  :argType = 0
+			if itemType(i) = "file" :argType = 1
+			gosub *itemedit
+		} else {
+			end
+		}
 	}}
 	return
 
@@ -263,7 +275,7 @@
 	return
 
 *registItem
-	gosub *setnewitem
+	if argIndex = -1 :gosub *setnewitem :else :gosub *setediteditem
 	gosub *getdat
 	oncstat = 1
 	return
@@ -286,6 +298,7 @@
 
 	sdim itemName, 32, itemLen
 	sdim itemPath, 1024, itemLen
+	sdim itemIcon, 1024, itemLen
 	sdim itemType, 8, itemLen
 
 	len = -1
@@ -297,7 +310,8 @@
 		if t == "path=" :itemPath(len) = strmid(s, 5, 1024)
 		if t == "icon=" {
 			; アイコン取得
-			SHGetFileInfo strmid(s, 5, 1024), 0, varptr(SHFILEINFO), $160, $500
+			itemIcon(len) = strmid(s, 5, 1024)
+			SHGetFileInfo itemIcon(len), 0, varptr(SHFILEINFO), $160, $500
 			x = 32 * len
 			y = 0
 			DrawIcon hdc, x, y, SHFILEINFO.0
@@ -326,6 +340,27 @@
 	chdir curdir
 	notesave "mlc2.dat"
 
+	return
+
+*setediteditem
+	len = -1
+	repeat noteinfo(0)
+		noteget s, cnt
+		if s == "[item]" :len++
+		if len == argIndex {
+			t = strmid(s, 0, 5)
+			if t == "name=" :noteadd "name=" + editName, cnt, 1
+			if t == "path=" :noteadd "path=" + editPath, cnt, 1
+			if t == "icon=" :noteadd "icon=" + editIcon, cnt, 1
+			if t == "type=" {
+				if editType == 0 :s = "exe" :else :s = "file"
+				noteadd "type=" + s, cnt, 1
+			}
+		}
+	loop
+
+	chdir curdir
+	notesave "mlc2.dat"
 	return
 
 
