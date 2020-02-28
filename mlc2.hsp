@@ -1,6 +1,7 @@
 ; ref)
 ; exeアイコンの取り出し http://lhsp.s206.xrea.com/hsp_file.html
 ; マウスカーソルの取得 http://antares.cn/hsp/sample/index.html#mouse
+; elseifのスマートな書き方 https://kouza.hamuinu.com/wiki_page/HSP%E8%AC%9B%E5%BA%A7/HSP%E3%81%AE%E5%9F%BA%E6%9C%AC%E7%B7%A8/%E7%AC%AC10%E7%AB%A0%20%E6%9D%A1%E4%BB%B6%E5%88%86%E5%B2%90
 
 #module
 #defcfunc getMx
@@ -20,6 +21,14 @@
 	t = s
 	if strmid(t, -1, 4) = ".exe" :i = 0
 	return i
+#defcfunc getTypeKey str s
+	if s = "exe"  :return 0
+	if s = "file" :return 1
+	if s = "dir"  :return 2
+#defcfunc getTypeValue int i
+	if i = 0 :return "exe"
+	if i = 1 :return "file"
+	if i = 2 :return "dir"
 
 #global
 
@@ -45,6 +54,7 @@
 	oncstat = 0
 
 	curdir = dir_cur
+	curdat = "root.dat"
 
 	; 円形ウィンドウ作成
 	x = ginfo_mx - 160
@@ -64,10 +74,6 @@
 	gsel 0
 
 	dim SHFILEINFO, 88
-
-	; XML読み込み
-	axobj MSXML2, "MSXML2.DOMDocument", 0, 0
-	MSXML2("async") = 0
 
 	gosub *getdat
 
@@ -106,6 +112,7 @@
 	editIcon = ""
 	input editIcon, 208, 16, 1024
 	idEditIcon = stat
+	sendmsg objinfo(idEditIcon, 2), $CF, 1 ; 編集不可
 	pos 272, 62
 	objsize 32, 20
 	button gosub "参照", *callIconLocation
@@ -115,8 +122,8 @@
 	pos 56, 86
 	font msgothic, 12
 	editType = 0
-	objsize 80, 20
-	combox editType, 40, "実行形式\nファイル"
+	objsize 120, 20
+	combox editType, 40, "実行形式\nファイル\nサブメニュー"
 	idEditType = stat
 
 	pos 96, 112
@@ -182,7 +189,9 @@
 				chdir getpath(itemPath(i), 32)
 				exec itemPath(i)
 				chdir curdir
-			} else {
+			} else : if itemType(i) == "file" {
+				exec itemPath(i), 16
+			} else : if itemType(i) == "dir" {
 				exec itemPath(i), 16
 			}
 		} else {
@@ -196,19 +205,18 @@
 				gosub *itemedit
 			}
 		}
-	} else { if ev & 512 {
+	} else : if ev & 512 {
 		if i < itemLen {
 			argIndex = i ; 編集
 			argName = itemName(i)
 			argPath = itemPath(i)
 			argIcon = itemIcon(i)
-			if itemType(i) = "exe"  :argType = 0
-			if itemType(i) = "file" :argType = 1
+			argType = getTypeKey(itemType(i))
 			gosub *itemedit
 		} else {
 			end
 		}
-	}}
+	}
 	return
 
 ;------------------+
@@ -275,7 +283,7 @@
 	return
 
 *registItem
-	if argIndex = -1 :gosub *setnewitem :else :gosub *setediteditem
+	gosub *writedat
 	gosub *getdat
 	oncstat = 1
 	return
@@ -286,7 +294,7 @@
 *getdat
 	notesel nt
 	chdir curdir
-	noteload "mlc2.dat"
+	noteload "data\\" + curdat
 
 	gsel 1
 
@@ -329,40 +337,32 @@
 	gsel 0
 	return
 
-*setnewitem
-	noteadd "[item]", -1, 0
-	noteadd "name=" + editName, -1, 0
-	noteadd "path=" + editPath, -1, 0
-	noteadd "icon=" + editIcon, -1, 0
-	if editType == 0 :s = "exe" :else :s = "file"
-	noteadd "type=" + s, -1, 0
-
-	chdir curdir
-	notesave "mlc2.dat"
-
-	return
-
-*setediteditem
-	len = -1
-	repeat noteinfo(0)
-		noteget s, cnt
-		if s == "[item]" :len++
-		if len == argIndex {
-			t = strmid(s, 0, 5)
-			if t == "name=" :noteadd "name=" + editName, cnt, 1
-			if t == "path=" :noteadd "path=" + editPath, cnt, 1
-			if t == "icon=" :noteadd "icon=" + editIcon, cnt, 1
-			if t == "type=" {
-				if editType == 0 :s = "exe" :else :s = "file"
-				noteadd "type=" + s, cnt, 1
+*writedat
+	if argIndex = -1 {
+		noteadd "[item]", -1, 0
+		noteadd "name=" + editName, -1, 0
+		noteadd "path=" + editPath, -1, 0
+		noteadd "icon=" + editIcon, -1, 0
+		noteadd "type=" + getTypeValue(editType), -1, 0
+	} else {
+		len = -1
+		repeat noteinfo(0)
+			noteget s, cnt
+			if s == "[item]" :len++
+			if len == argIndex {
+				t = strmid(s, 0, 5)
+				if t == "name=" :noteadd "name=" + editName, cnt, 1
+				if t == "path=" :noteadd "path=" + editPath, cnt, 1
+				if t == "icon=" :noteadd "icon=" + editIcon, cnt, 1
+				if t == "type=" :noteadd "type=" + getTypeValue(editType), cnt, 1
 			}
-		}
-	loop
+		loop
+	}
 
 	chdir curdir
-	notesave "mlc2.dat"
-	return
+	notesave "data\\" + curdat
 
+	return
 
 
 
