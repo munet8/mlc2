@@ -1,5 +1,6 @@
 ; ref)
 ; exeアイコンの取り出し http://lhsp.s206.xrea.com/hsp_file.html
+; オブジェクトの活性/非活性 http://lhsp.s206.xrea.com/hsp_object2.html
 ; マウスカーソルの取得 http://antares.cn/hsp/sample/index.html#mouse
 ; elseifのスマートな書き方 https://kouza.hamuinu.com/wiki_page/HSP%E8%AC%9B%E5%BA%A7/HSP%E3%81%AE%E5%9F%BA%E6%9C%AC%E7%B7%A8/%E7%AC%AC10%E7%AB%A0%20%E6%9D%A1%E4%BB%B6%E5%88%86%E5%B2%90
 
@@ -22,13 +23,17 @@
 	if strmid(t, -1, 4) = ".exe" :i = 0
 	return i
 #defcfunc getTypeKey str s
-	if s = "exe"  :return 0
-	if s = "file" :return 1
-	if s = "dir"  :return 2
-#defcfunc getTypeValue int i
-	if i = 0 :return "exe"
-	if i = 1 :return "file"
-	if i = 2 :return "dir"
+	i = 0
+	if s = "exe"  :i = 0
+	if s = "file" :i = 1
+	if s = "dir"  :i = 2
+	return i
+#defcfunc getTypeValue int j
+	s = ""
+	if j = 0 :s = "exe"
+	if j = 1 :s = "file"
+	if j = 2 :s = "dir"
+	return s
 
 #global
 
@@ -55,27 +60,7 @@
 
 	curdir = dir_cur
 	curdat = "root.dat"
-
-	; 円形ウィンドウ作成
-	x = ginfo_mx - 160
-	y = ginfo_my - 160
-	if x < 0 :x = 0
-	if x > (ginfo_dispx - 320) :x = ginfo_dispx - 320
-	if y < 0 :y = 0
-	if y > (ginfo_dispy - 320) :y = ginfo_dispy - 320
-	bgscr 0, 320, 320, 0, x, y
-	hRgn = CreateEllipticRgn (0, 0, 320, 320)
-	SetWindowRgn hwnd, hRgn, 1
-	cls 0
-
-	buffer 1, 480, 96, 0
-	gsel 1
-	cls 0
-	gsel 0
-
-	dim SHFILEINFO, 88
-
-	gosub *getdat
+	parentdat = ""
 
 	; アイテム編集画面の作成
 	screen 3, 320, 240, 2
@@ -104,6 +89,7 @@
 	pos 272, 38
 	objsize 32, 20
 	button gosub "参照", *callLocation
+	idButtonEditPath = stat
 	pos 16, 64
 	font msgothic, 16
 	mes "Icon"
@@ -131,6 +117,28 @@
 	font msgothic, 16
 	button gosub "登録", *registItem
 
+*initwindow
+	; 円形ウィンドウ作成
+	x = ginfo_mx - 160
+	y = ginfo_my - 160
+	if x < 0 :x = 0
+	if x > (ginfo_dispx - 320) :x = ginfo_dispx - 320
+	if y < 0 :y = 0
+	if y > (ginfo_dispy - 320) :y = ginfo_dispy - 320
+	bgscr 0, 320, 320, 0, x, y
+	hRgn = CreateEllipticRgn (0, 0, 320, 320)
+	SetWindowRgn hwnd, hRgn, 1
+	cls 0
+
+	buffer 1, 480, 96, 0
+	gsel 1
+	cls 0
+	gsel 0
+
+	dim SHFILEINFO, 88
+
+	gosub *getdat
+
 ;-------------------------------------------------------------------------------
 ;          ;
 *mainlabel ; メイン
@@ -139,11 +147,15 @@
 
 	gsel 0
 
+	changedat = 0
 	repeat
 		gosub *drawing
 		gosub *event
 		wait 5
+		if changedat == 1 :break
 	loop
+
+	goto *initwindow
 
 *drawing
 	redraw 2
@@ -192,7 +204,9 @@
 			} else : if itemType(i) == "file" {
 				exec itemPath(i), 16
 			} else : if itemType(i) == "dir" {
-				exec itemPath(i), 16
+				changedat = 1
+				parentdat = curdat
+				curdat = itemPath(i)
 			}
 		} else {
 			dialog "", 16
@@ -242,7 +256,16 @@
 
 	repeat
 		getkey ev, 27
-		if (ev = 1)|(oncstat = 1) :break
+		if (ev == 1)|(oncstat == 1) :break
+
+		if EditType == 2 { ; サブメニュー
+			objenable idEditPath, 0
+			objenable idButtonEditPath, 0
+			if argIndex = -1 :objprm idEditPath, editName + ".dat"
+		} else {
+			objenable idEditPath, 1
+			objenable idButtonEditPath, 1
+		}
 		wait 5
 	loop
 	oncstat = 0
@@ -283,6 +306,14 @@
 	return
 
 *registItem
+	if EditType == 2 { ; サブメニューであり、名前が重複している場合は登録しない
+		chdir curdir
+		exist "data\\" + EditPath
+		if strsize >= 0 {
+			dialog "この名前のサブメニューは登録済みです", 1
+			return
+		}
+	}
 	gosub *writedat
 	gosub *getdat
 	oncstat = 1
@@ -302,6 +333,7 @@
 	repeat noteinfo(0)
 		noteget s, cnt
 		if s == "[item]" :itemLen++
+		if strmid(s, 0, 7) == "parent=" : parentdat = strmid(s, 7, 1024)
 	loop
 
 	sdim itemName, 32, itemLen
@@ -338,7 +370,7 @@
 	return
 
 *writedat
-	if argIndex = -1 {
+	if argIndex == -1 {
 		noteadd "[item]", -1, 0
 		noteadd "name=" + editName, -1, 0
 		noteadd "path=" + editPath, -1, 0
@@ -361,6 +393,11 @@
 
 	chdir curdir
 	notesave "data\\" + curdat
+
+	if (argIndex == -1)&(editType==2) {
+		s = "parent=" + curdat
+		bsave "data\\" + editPath, s
+	}
 
 	return
 
