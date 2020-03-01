@@ -328,6 +328,7 @@
 	noteload "data\\" + curdat
 
 	gsel 1
+	cls 0
 
 	itemLen = 0
 	repeat noteinfo(0)
