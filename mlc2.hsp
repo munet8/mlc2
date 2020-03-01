@@ -261,7 +261,7 @@
 		if EditType == 2 { ; サブメニュー
 			objenable idEditPath, 0
 			objenable idButtonEditPath, 0
-			if argIndex = -1 :objprm idEditPath, editName + ".dat"
+			if (argIndex == -1)|(itemType(i) != "dir") :objprm idEditPath, editName + ".dat"
 		} else {
 			objenable idEditPath, 1
 			objenable idButtonEditPath, 1
