@@ -3,7 +3,21 @@
 ; オブジェクトの活性/非活性 http://lhsp.s206.xrea.com/hsp_object2.html
 ; マウスカーソルの取得 http://antares.cn/hsp/sample/index.html#mouse
 ; elseifのスマートな書き方 https://kouza.hamuinu.com/wiki_page/HSP%E8%AC%9B%E5%BA%A7/HSP%E3%81%AE%E5%9F%BA%E6%9C%AC%E7%B7%A8/%E7%AC%AC10%E7%AB%A0%20%E6%9D%A1%E4%BB%B6%E5%88%86%E5%B2%90
+; 管理者権限の獲得 http://hsptv.sakura.ne.jp/play/pforum.php?mode=pastwch&num=72960#73405
 
+; API読み込み
+#uselib "gdi32" 
+#cfunc CreateEllipticRgn "CreateEllipticRgn" int, int, int, int
+#uselib "user32"
+#func SetWindowRgn "SetWindowRgn" int, int, int
+#func DrawIcon "DrawIcon" sptr, sptr, sptr, sptr
+#func DestroyIcon "DestroyIcon" sptr
+#func EnableWindow "EnableWindow" int, int
+#uselib "shell32"
+#func SHGetFileInfo "SHGetFileInfo" sptr, sptr, sptr, sptr, sptr
+#func ShellExecuteEx "ShellExecuteEx" sptr
+
+; 関数の定義
 #module
 #defcfunc getMx
 	prmx=ginfo_sizex: frameW=(prmx-320)/2 ;補正値の計算
@@ -16,7 +30,9 @@
 	prmy=ginfo_wy1:      top=prmy+titleH        ;原点のスクリーン座標
 	prmy=ginfo_my:       my=prmy-top            ;スクリーン座標→ウィンドウ座標
 	return my
+#global
 
+#module
 #defcfunc isExecutable str s
 	i = 1
 	t = s
@@ -27,26 +43,16 @@
 	if s = "exe"  :i = 0
 	if s = "file" :i = 1
 	if s = "dir"  :i = 2
+	if s = "uac"  :i = 3
 	return i
 #defcfunc getTypeValue int j
-	s = ""
-	if j = 0 :s = "exe"
-	if j = 1 :s = "file"
-	if j = 2 :s = "dir"
-	return s
-
+	t = ""
+	if j = 0 :t = "exe"
+	if j = 1 :t = "file"
+	if j = 2 :t = "dir"
+	if j = 3 :t = "uac"
+	return t
 #global
-
-	; API読み込み
-#uselib "gdi32" 
-#cfunc CreateEllipticRgn "CreateEllipticRgn" int, int, int, int
-#uselib "user32"
-#func SetWindowRgn "SetWindowRgn" int, int, int
-#func DrawIcon "DrawIcon" sptr, sptr, sptr, sptr
-#func DestroyIcon "DestroyIcon" sptr
-#func EnableWindow "EnableWindow" int, int
-#uselib "shell32"
-#func SHGetFileInfo "SHGetFileInfo" sptr, sptr, sptr, sptr, sptr
 
 ;-------------------------------------------------------------------------------
 ;          ;
@@ -109,7 +115,7 @@
 	font msgothic, 12
 	editType = 0
 	objsize 120, 20
-	combox editType, 40, "実行形式\nファイル\nサブメニュー"
+	combox editType, 40, "実行形式\nファイル\nサブメニュー\n管理者権限"
 	idEditType = stat
 
 	pos 96, 112
@@ -207,6 +213,16 @@
 				changedat = 1
 				parentdat = curdat
 				curdat = itemPath(i)
+			} else : if itemType(i) == "uac" {
+				chdir getpath(itemPath(i), 32)
+				str_executefile = itemPath(i)
+				str_performmode = "runas"
+
+				dim tag_shell_excute_info, 15
+				tag_shell_excute_info = 4*15, 0, 0, varptr(str_performmode), varptr(str_executefile), 0, 0, 5
+				ShellExecuteEx varptr(tag_shell_excute_info)
+
+				chdir curdir
 			}
 		} else {
 			dialog "", 16
