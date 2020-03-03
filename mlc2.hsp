@@ -326,8 +326,8 @@
 		chdir curdir
 		exist "data\\" + EditPath
 		if strsize >= 0 {
-			dialog "この名前のサブメニューは登録済みです", 1
-			return
+			dialog "この名前のサブメニューは登録済みです。\n同じものを呼び出しますか？", 3
+			if stat == 7 :return
 		}
 	}
 	gosub *writedat
