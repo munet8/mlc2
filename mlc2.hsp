@@ -38,6 +38,15 @@
 	t = s
 	if strmid(t, -1, 4) = ".exe" :i = 0
 	return i
+#defcfunc isAbsolutePath str s
+	; rel) https://dobon.net/vb/dotnet/file/isabsolutepath.html
+	; パス名の先頭が「\\」「[A-Za-z]:\\」(←これは割り切り判定)「\」なら絶対パス
+	i = 0
+	t = s
+	if strmid(t, 0, 2) == "\\\\" :i = 1
+	if strmid(t, 1, 2) == ":\\"  :i = 1
+	if strmid(t, 0, 1) == "\\"   :i = 1
+	return i
 #defcfunc getTypeKey str s
 	i = 0
 	if s = "exe"  :i = 0
@@ -204,7 +213,7 @@
 	if ev & 256 {
 		if i < itemLen {
 			if itemType(i) == "exe" {
-				chdir getpath(itemPath(i), 32)
+				if isAbsolutePath(itemPath(i)) :chdir getpath(itemPath(i), 32)
 				exec itemPath(i)
 				chdir curdir
 			} else : if itemType(i) == "file" {
