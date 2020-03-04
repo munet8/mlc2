@@ -223,7 +223,7 @@
 				parentdat = curdat
 				curdat = itemPath(i)
 			} else : if itemType(i) == "uac" {
-				chdir getpath(itemPath(i), 32)
+				if isAbsolutePath(itemPath(i)) :chdir getpath(itemPath(i), 32)
 				str_executefile = itemPath(i)
 				str_performmode = "runas"
 
