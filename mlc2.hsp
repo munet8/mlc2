@@ -145,7 +145,7 @@
 	SetWindowRgn hwnd, hRgn, 1
 	cls 0
 
-	buffer 1, 480, 96, 0
+	buffer 1, 512, 32, 0
 	gsel 1
 	cls 0
 	gsel 0
@@ -174,12 +174,14 @@
 
 *drawing
 	redraw 2
-	cls 0
+	color 255, 255, 255 :boxf 0, 0, 320, 320
 
-	repeat itemLen + 1
+	division = itemLen
+	if division < 16 :division++
+	repeat division
 		; •`‰æ
-		radLine = deg2rad(360 * cnt / (itemLen+1) - 90)
-		radIco = deg2rad(360 * cnt / (itemLen+1) - 90 + (180 / (itemLen+1)))
+		radLine = deg2rad(360 * cnt / division - 90)
+		radIco = deg2rad(360 * cnt / division - 90 + (180 / division))
 		x = 160 + int(160.0 * cos(radLine))
 		y = 160 + int(160.0 * sin(radLine))
 		color 0, 0, 0
@@ -207,7 +209,7 @@
 	th += M_PI / 2
 	if th < 0 :th += 2 * M_PI
 
-	i = int(th * (itemLen + 1) / (2 * M_PI))
+	i = int(th * division / (2 * M_PI))
 
 	stick ev
 	if ev & 256 {
@@ -215,7 +217,6 @@
 			if itemType(i) == "exe" {
 				if isAbsolutePath(itemPath(i)) :chdir getpath(itemPath(i), 32)
 				exec itemPath(i)
-				chdir curdir
 			} else : if itemType(i) == "file" {
 				exec itemPath(i), 16
 			} else : if itemType(i) == "dir" {
@@ -230,8 +231,6 @@
 				dim tag_shell_excute_info, 15
 				tag_shell_excute_info = 4*15, 0, 0, varptr(str_performmode), varptr(str_executefile), 0, 0, 5
 				ShellExecuteEx varptr(tag_shell_excute_info)
-
-				chdir curdir
 			}
 		} else {
 			dialog "", 16
