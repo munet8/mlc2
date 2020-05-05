@@ -4,6 +4,8 @@
 ; マウスカーソルの取得 http://antares.cn/hsp/sample/index.html#mouse
 ; elseifのスマートな書き方 https://kouza.hamuinu.com/wiki_page/HSP%E8%AC%9B%E5%BA%A7/HSP%E3%81%AE%E5%9F%BA%E6%9C%AC%E7%B7%A8/%E7%AC%AC10%E7%AB%A0%20%E6%9D%A1%E4%BB%B6%E5%88%86%E5%B2%90
 ; 管理者権限の獲得 http://hsptv.sakura.ne.jp/play/pforum.php?mode=pastwch&num=72960#73405
+; タスクトレイへの格納 http://hsp.tv/play/pforum.php?mode=pastwch&num=1594#1760
+; 領域外のマウスイベント取得 
 
 ; API読み込み
 #uselib "gdi32" 
@@ -13,9 +15,14 @@
 #func DrawIcon "DrawIcon" sptr, sptr, sptr, sptr
 #func DestroyIcon "DestroyIcon" sptr
 #func EnableWindow "EnableWindow" int, int
+#cfunc GetAsyncKeyState "GetAsyncKeyState" int
 #uselib "shell32"
 #func SHGetFileInfo "SHGetFileInfo" sptr, sptr, sptr, sptr, sptr
 #func ShellExecuteEx "ShellExecuteEx" sptr
+#func ExtractIconEx "ExtractIconExA" int, int, int, int, int
+#func Shell_NotifyIcon "Shell_NotifyIcon" int, int
+#uselib "kernel32.dll"
+#func GetModuleFileNameA "GetModuleFileNameA" int, int, int
 
 ; 関数の定義
 #module
@@ -132,6 +139,47 @@
 	font msgothic, 16
 	button gosub "登録", *registItem
 
+;-------------------------------------------------------------------------------
+;              ;
+*tasktraylabel ; タスクトレイ格納時
+;              ;
+;-------------------------------------------------------------------------------
+
+	; タスクトレイ格納
+	gsel 0, -1
+	sdim myNameIs, 3200
+	GetModuleFileNameA hm, varptr(myNameIs), 3200
+	myiconB = 0: myiconS = 0
+	ExtractIconEx varptr(myNameIs), 0, varptr(myiconB), varptr(myiconS), 1
+	hIcon = myiconS
+	dim IconData, 22
+	IconData = 88, hwnd, 1 , $0003, $1400, hIcon
+	Shell_NotifyIcon NIM_ADD, varptr(IconData)
+
+	; ロッカージェスチャー入力待ち
+	MouseLock = 0
+	repeat
+		LeftButton = GetAsyncKeyState(1)
+		RightButton = GetAsyncKeyState(2)
+		; ロッカージェスチャーRL
+		if ( LeftButton == 0 )&( RightButton != 0 )&( MouseLock == 0 ) {
+			MouseLock = 1
+		}
+		if ( LeftButton != 0 )&( RightButton != 0 )&( MouseLock == 1 ) {
+			MouseLock = 2
+		}
+		if ( LeftButton == 0 )&( RightButton == 0 )&( MouseLock == 2 ) {
+			MouseLock = 0
+			break
+		}
+		wait 1
+	loop
+
+	; タスクトレイ復帰
+	dim IconData, 22
+	IconData = 88, hwnd, 1, $2
+	Shell_NotifyIcon $2, varptr(IconData)
+
 *initwindow
 	; 円形ウィンドウ作成
 	x = ginfo_mx - 160
@@ -160,16 +208,19 @@
 ;          ;
 ;-------------------------------------------------------------------------------
 
-	gsel 0
+	gsel 0, 2
 
 	changedat = 0
+	puttasktray = 0
 	repeat
 		gosub *drawing
 		gosub *event
-		wait 5
+		wait 1
 		if changedat == 1 :break
+		if puttasktray == 1 :break
 	loop
 
+	if puttasktray == 1 :goto *tasktraylabel
 	goto *initwindow
 
 *drawing
@@ -211,7 +262,7 @@
 
 	i = int(th * division / (2 * M_PI))
 
-	stick ev
+	stick ev, 0, 1
 	if ev & 256 {
 		if i < itemLen {
 			if itemType(i) == "exe" {
@@ -252,8 +303,10 @@
 			argType = getTypeKey(itemType(i))
 			gosub *itemedit
 		} else {
-			end
+			puttasktray = 1
 		}
+	} else : if ev & 128 {
+		end
 	}
 	return
 
