@@ -283,6 +283,7 @@
 				tag_shell_excute_info = 4*15, 0, 0, varptr(str_performmode), varptr(str_executefile), 0, 0, 5
 				ShellExecuteEx varptr(tag_shell_excute_info)
 			}
+			puttasktray = 1
 		} else {
 			dialog "", 16
 			if stat == 1 {
