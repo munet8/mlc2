@@ -163,18 +163,20 @@
 	; ロッカージェスチャー入力待ち
 	MouseLock = 0
 	repeat
-		LeftButton = GetAsyncKeyState(1)
-		RightButton = GetAsyncKeyState(2)
-		; ロッカージェスチャーRL
-		if ( LeftButton == 0 )&( RightButton != 0 )&( MouseLock == 0 ) {
-			MouseLock = 1
-		}
-		if ( LeftButton != 0 )&( RightButton != 0 )&( MouseLock == 1 ) {
-			MouseLock = 2
-		}
-		if ( LeftButton == 0 )&( RightButton == 0 )&( MouseLock == 2 ) {
-			MouseLock = 0
-			break
+		; ロッカージェスチャーLR
+		locker1st = GetAsyncKeyState(1)
+		locker2nd = GetAsyncKeyState(2)
+		; ロッカージェスチャー
+		if ( MouseLock == 0 ) {
+			if ( locker1st != 0 )&( locker2nd == 0 ) : MouseLock = 1
+		} else : if ( MouseLock == 1 ) {
+			if ( locker1st != 0 )&( locker2nd != 0 ) : MouseLock = 2
+			if ( locker1st == 0 )&( locker2nd == 0 ) : MouseLock = 0
+		} else : if ( MouseLock == 2 ) {
+			if ( locker1st == 0 )&( locker2nd == 0 ) {
+				MouseLock = 0
+				break
+			}
 		}
 		wait 1
 	loop
