@@ -80,9 +80,10 @@
 	onexit gosub *onclose
 	oncstat = 0
 
+	; タスクトレイのアイコンクリック
+	oncmd gosub *clicktasktray, $1400
+
 	curdir = dir_cur
-	curdat = "root.dat"
-	parentdat = ""
 
 	; アイテム編集画面の作成
 	screen 3, 320, 240, 2
@@ -141,9 +142,12 @@
 
 ;-------------------------------------------------------------------------------
 ;              ;
-*tasktraylabel ; タスクトレイ格納時
+*tasktraylabel ; タスクトレイ格納・復帰
 ;              ;
 ;-------------------------------------------------------------------------------
+
+	curdat = "root.dat"
+	parentdat = ""
 
 	; タスクトレイ格納
 	gsel 0, -1
@@ -308,6 +312,16 @@
 		}
 	} else : if ev & 128 {
 		end
+	}
+	return
+
+;------------------+
+; タスクトレイ関係 |
+;------------------+
+*clicktasktray
+	if (ginfo_act < 0)&(lparam == $00000201) {
+		dialog "終了しますか？", 2
+		if stat == 6 :end
 	}
 	return
 
