@@ -264,7 +264,7 @@
 	x = getMx()
 	y = getMy()
 	if (( x - 160 ) * ( x - 160 ) + ( y - 160 ) * ( y - 160 )) <= 25600 {
-		if ( -40 <= x )&( x < 40 )&( -40 <= y )&( y < 40 ) {
+		if ( 120 <= x )&( x < 200 )&( 120 <= y )&( y < 200 ) {
 			; ’†S
 			i = -1
 		} else {
@@ -303,7 +303,8 @@
 	color 0, 0, 0 :boxf 119, 119, 201, 201
 	color 255, 255, 255 :boxf 120, 120, 200, 200
 	if i == -1 {
-		;
+		color 0, 0, 0 :font msgothic, 16 :pos 144, 152
+		mes "‘º’ƒ"
 	} else : if ( 0 <= i )&( i < itemLen ) {
 		color 0, 0, 0 :font msgothic, 16
 		repeat 5
@@ -376,7 +377,7 @@
 		} else : if ev & 128 {
 			end
 		}
-	} else : if ( i = -1 ) {
+	} else : if ( i == -1 ) {
 		stick ev, 0, 1
 		if ev & 256 {
 		}
