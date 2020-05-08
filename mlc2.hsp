@@ -249,12 +249,37 @@
 	if puttasktray == 1 :goto *tasktraylabel
 	goto *initwindow
 
+;--------------------+
+; ランチャー表示関係 |
+;--------------------+
+
 *drawing
 	redraw 2
 	color 255, 255, 255 :boxf 0, 0, 320, 320
 
 	division = itemLen
 	if division < 16 :division++
+
+	; マウス位置の取得
+	x = getMx()
+	y = getMy()
+	if (( x - 160 ) * ( x - 160 ) + ( y - 160 ) * ( y - 160 )) <= 25600 {
+		if ( -40 <= x )&( x < 40 )&( -40 <= y )&( y < 40 ) {
+			; 中心
+			i = -1
+		} else {
+			; 各アイテム
+			th = atan(y - 160, x - 160)
+			th += M_PI / 2
+			if th < 0 :th += 2 * M_PI
+
+			i = int(th * division / (2 * M_PI))
+		}
+	} else {
+		; 画面外
+		i = -2
+	}
+
 	repeat division
 		; 描画
 		radLine = deg2rad(360 * cnt / division - 90)
@@ -275,20 +300,33 @@
 		}
 	loop
 
+	color 0, 0, 0 :boxf 119, 119, 201, 201
+	color 255, 255, 255 :boxf 120, 120, 200, 200
+	if i == -1 {
+		;
+	} else : if ( 0 <= i )&( i < itemLen ) {
+		color 0, 0, 0 :font msgothic, 16
+		repeat 5
+			if strlen(itemDispName(i, cnt)) > 0 :dnt = cnt
+		loop
+		dnt++
+		repeat dnt
+			namelen = strlen(itemDispName(i, cnt))
+			pos 4 * ( 10 - namelen ) + 120, ( -8 * dnt ) + ( 16 * cnt ) + 160
+			mes itemDispName(i, cnt)
+		loop
+	} else : if ( i == itemLen ) {
+		color 0, 0, 0 :font msgothic, 16 :pos 144, 152
+		mes "新規"
+	} else {
+		; 画面外
+	}
+
 	redraw 1
 	return
 
 *event
-	x = getMx()
-	y = getMy()
-
-	if (( x - 160 ) * ( x - 160 ) + ( y - 160 ) * ( y - 160 )) <= 25600 {
-		th = atan(y - 160, x - 160)
-		th += M_PI / 2
-		if th < 0 :th += 2 * M_PI
-
-		i = int(th * division / (2 * M_PI))
-
+	if ( i >= 0 ) {
 		stick ev, 0, 1
 		if ev & 256 {
 			if i < itemLen {
@@ -337,6 +375,10 @@
 			}
 		} else : if ev & 128 {
 			end
+		}
+	} else : if ( i = -1 ) {
+		stick ev, 0, 1
+		if ev & 256 {
 		}
 	}
 	return
@@ -456,6 +498,7 @@
 	loop
 
 	sdim itemName, 32, itemLen
+	sdim itemDispName, 10, itemLen, 5
 	sdim itemPath, 1024, itemLen
 	sdim itemIcon, 1024, itemLen
 	sdim itemType, 8, itemLen
@@ -477,13 +520,25 @@
 			DestroyIcon SHFILEINFO.0
 		}
 		if t == "type=" :itemType(len) = strmid(s, 5, 8)
-
 	loop
 
 	len++
 	itemName(len) = ""
 	itemPath(len) = ""
 	itemType(len) = ""
+
+	repeat len
+		cursor = 0 :column = 0
+		dnt = cnt
+		repeat strlen(itemName(dnt))
+			b = peek(itemName(dnt), cnt)
+			if ( cursor == 10 )|(( cursor == 9 )&((( 129 <= b )&( b <= 159 ))|(( 224 <= b )|( b <= 252 )))) {
+				column++ :cursor = 0
+			}
+			poke itemDispName(dnt, column), cursor, b
+			cursor++
+		loop
+	loop
 
 	gsel 0
 	return
