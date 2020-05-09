@@ -175,7 +175,6 @@
 	; ロッカージェスチャー入力待ち
 	MouseLock = 0
 	repeat
-		; ロッカージェスチャーLR
 		/*
 			https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
 			VK_LBUTTON 0x01 Left mouse button
@@ -184,8 +183,9 @@
 			VK_XBUTTON1 0x05 X1 mouse button
 			VK_XBUTTON2 0x06 X2 mouse button
 		*/
-		locker1st = GetAsyncKeyState(1)
-		locker2nd = GetAsyncKeyState(2)
+		; ロッカージェスチャーRL
+		locker1st = GetAsyncKeyState(2)
+		locker2nd = GetAsyncKeyState(1)
 		; ロッカージェスチャー
 		if ( MouseLock == 0 ) {
 			if ( locker1st != 0 )&( locker2nd == 0 ) : MouseLock = 1
@@ -542,7 +542,7 @@
 		dnt = cnt
 		repeat strlen(itemName(dnt))
 			b = peek(itemName(dnt), cnt)
-			if ( cursor == 10 )|(( cursor == 9 )&((( 129 <= b )&( b <= 159 ))|(( 224 <= b )|( b <= 252 )))) {
+			if ( cursor == 11 )|(( cursor == 10 )&((( 129 <= b )&( b <= 159 ))|(( 224 <= b )|( b <= 252 )))) {
 				column++ :cursor = 0
 			}
 			poke itemDispName(dnt, column), cursor, b
