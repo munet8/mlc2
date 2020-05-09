@@ -269,11 +269,11 @@
 			i = -1
 		} else {
 			; 各アイテム
-			th = atan(y - 160, x - 160)
-			th += M_PI / 2
-			if th < 0 :th += 2 * M_PI
+			th = atan(y - 160.0, x - 160.0)
+			th += M_PI / 2.0
+			if th < 0 :th += 2.0 * M_PI
 
-			i = int(th * division / (2 * M_PI))
+			i = int(th * division / (2.0 * M_PI))
 		}
 	} else {
 		; 画面外
@@ -389,6 +389,8 @@
 				changedat = 1
 				curdat = parentdat
 			}
+		} else : if ev & 128 {
+			end
 		}
 	}
 	return
