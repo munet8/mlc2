@@ -478,12 +478,14 @@
 	return
 
 *registItem
+	notMakeSubItem = 0
 	if EditType == 2 { ; サブメニューであり、名前が重複している場合は登録しない
 		chdir curdir
 		exist "data\\" + EditPath
 		if strsize >= 0 {
 			dialog "この名前のサブメニューは登録済みです。\n同じものを呼び出しますか？", 3
 			if stat == 7 :return
+			notMakeSubItem = 1
 		}
 	}
 	gosub *writedat
@@ -580,7 +582,7 @@
 	chdir curdir
 	notesave "data\\" + curdat
 
-	if (argIndex == -1)&(editType==2) {
+	if ( argIndex == -1 )&( editType == 2 )&( notMakeSubItem == 0 ) {
 		s = "parent=" + curdat
 		bsave "data\\" + editPath, s
 	}
