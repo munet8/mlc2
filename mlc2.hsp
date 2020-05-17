@@ -584,7 +584,7 @@
 
 	if ( argIndex == -1 )&( editType == 2 )&( notMakeSubItem == 0 ) {
 		s = "parent=" + curdat
-		bsave "data\\" + editPath, s
+		bsave "data\\" + editPath, s, strlen(s)
 	}
 
 	return
