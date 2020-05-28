@@ -543,11 +543,20 @@
 	itemType(len) = ""
 
 	repeat len
-		cursor = 0 :column = 0
+		cursor = 0 :column = 0 :zenkaku = 0
 		dnt = cnt
 		repeat strlen(itemName(dnt))
 			b = peek(itemName(dnt), cnt)
-			if ( cursor == 11 )|(( cursor == 10 )&((( 129 <= b )&( b <= 159 ))|(( 224 <= b )|( b <= 252 )))) {
+			if ( zenkaku > 1 ) {
+				zenkaku--
+			} else {
+				if (( 129 <= b )&( b <= 159 ))|(( 224 <= b )&( b <= 252 )) {
+					zenkaku = 2
+				} else {
+					zenkaku = 0
+				}
+			}
+			if ( cursor == 10 )|(( cursor == 9 )&( zenkaku == 2 )) {
 				column++ :cursor = 0
 			}
 			poke itemDispName(dnt, column), cursor, b
