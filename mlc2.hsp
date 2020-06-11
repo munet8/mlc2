@@ -352,7 +352,11 @@
 					exec itemPath(i), 16
 					puttasktray = 1
 				} else : if itemType(i) == "fold" {
-					exec iniFiler + " " + itemPath(i)
+					if instr( itemPath(i), 0, " " ) >= 0 {
+						exec iniFiler + " \"" + itemPath(i) + "\""
+					} else {
+						exec iniFiler + " " + itemPath(i)
+					}
 					puttasktray = 1
 				} else : if itemType(i) == "dir" {
 					changedat = 1
