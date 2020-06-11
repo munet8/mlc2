@@ -5,7 +5,7 @@
 ; elseifのスマートな書き方 https://kouza.hamuinu.com/wiki_page/HSP%E8%AC%9B%E5%BA%A7/HSP%E3%81%AE%E5%9F%BA%E6%9C%AC%E7%B7%A8/%E7%AC%AC10%E7%AB%A0%20%E6%9D%A1%E4%BB%B6%E5%88%86%E5%B2%90
 ; 管理者権限の獲得 http://hsptv.sakura.ne.jp/play/pforum.php?mode=pastwch&num=72960#73405
 ; タスクトレイへの格納 http://hsp.tv/play/pforum.php?mode=pastwch&num=1594#1760
-; 領域外のマウスイベント取得 
+; 領域外のマウスイベント取得 http://hsp.tv/play/pforum.php?mode=pastwch&num=76709#76718
 
 ; API読み込み
 #uselib "gdi32" 
@@ -68,17 +68,19 @@
 	return t
 #defcfunc getTypeKey str s
 	i = 0
-	if s = "exe"  :i = 0
-	if s = "file" :i = 1
-	if s = "dir"  :i = 2
-	if s = "uac"  :i = 3
+	if s == "exe"  :i = 0
+	if s == "file" :i = 1
+	if s == "fold" :i = 2
+	if s == "dir"  :i = 3
+	if s == "uac"  :i = 4
 	return i
 #defcfunc getTypeValue int j
 	t = ""
-	if j = 0 :t = "exe"
-	if j = 1 :t = "file"
-	if j = 2 :t = "dir"
-	if j = 3 :t = "uac"
+	if j == 0 :t = "exe"
+	if j == 1 :t = "file"
+	if j == 2 :t = "fold"
+	if j == 3 :t = "dir"
+	if j == 4 :t = "uac"
 	return t
 #global
 
@@ -96,6 +98,10 @@
 	oncmd gosub *clicktasktray, $1400
 
 	curdir = dir_cur
+
+	; ini読み込み
+	sdim iniFiler, 1024
+	bload "mlc2.ini", iniFiler
 
 	; アイテム編集画面の作成
 	screen 3, 320, 240, 2
@@ -144,7 +150,7 @@
 	font msgothic, 12
 	editType = 0
 	objsize 120, 20
-	combox editType, 40, "実行形式\nファイル\nサブメニュー\n管理者権限"
+	combox editType, 40, "実行形式\nファイル\nフォルダー\nサブメニュー\n管理者権限"
 	idEditType = stat
 
 	pos 96, 112
@@ -345,6 +351,9 @@
 				} else : if itemType(i) == "file" {
 					exec itemPath(i), 16
 					puttasktray = 1
+				} else : if itemType(i) == "fold" {
+					exec iniFiler + " " + itemPath(i)
+					puttasktray = 1
 				} else : if itemType(i) == "dir" {
 					changedat = 1
 					curdat = itemPath(i)
@@ -431,7 +440,7 @@
 		getkey ev, 27
 		if (ev == 1)|(oncstat == 1) :break
 
-		if EditType == 2 { ; サブメニュー
+		if EditType == 3 { ; サブメニュー
 			objenable idEditPath, 0
 			objenable idButtonEditPath, 0
 			if (argIndex == -1)|(itemType(i) != "dir") :objprm idEditPath, editName + ".dat"
@@ -592,7 +601,7 @@
 	chdir curdir
 	notesave "data\\" + curdat
 
-	if ( argIndex == -1 )&( editType == 2 )&( notMakeSubItem == 0 ) {
+	if ( argIndex == -1 )&( editType == 3 )&( notMakeSubItem == 0 ) {
 		s = "parent=" + curdat
 		bsave "data\\" + editPath, s, strlen(s)
 	}
