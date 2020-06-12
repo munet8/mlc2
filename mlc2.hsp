@@ -82,6 +82,9 @@
 	if j == 3 :t = "dir"
 	if j == 4 :t = "uac"
 	return t
+#deffunc setColor int j
+	color j >> 16, ( j >> 8 ) & 255, j & 255
+	return
 #global
 
 ;-------------------------------------------------------------------------------
@@ -113,13 +116,19 @@
 	noteget s, 1
 	iniFont = strmid(s, 5, 128)
 	if strlen( iniFont ) == 0 :iniFont = msgothic
+	noteget s, 2
+	iniFGColor = int("$" + strmid(s, 9, 6))
+	noteget s, 3
+	iniBGColor = int("$" + strmid(s, 9, 6))
 
 	; アイテム編集画面の作成
 	screen 3, 320, 240, 2
 	cls 0
+	setColor iniBGColor
+	boxf 0, 0, 320, 240
 
 	objmode 2, 1
-	color 0, 0, 0
+	setColor iniFGColor
 	font iniFont, 16
 
 	pos 16, 16
@@ -234,7 +243,9 @@
 	bgscr 0, 320, 320, 0, x, y
 	hRgn = CreateEllipticRgn (0, 0, 320, 320)
 	SetWindowRgn hwnd, hRgn, 1
-	cls 0
+
+	setColor iniBGColor
+	boxf 0, 0, 320, 320
 
 	buffer 1, 512, 32, 0
 	gsel 1
@@ -272,8 +283,8 @@
 
 *drawing
 	redraw 2
-	color 0, 0, 0 :boxf 0, 0, 320, 320
-	color 255, 255, 255 :circle 1, 1, 318, 318, 1
+	setColor iniFGColor :boxf 0, 0, 320, 320
+	setColor iniBGColor :circle 1, 1, 318, 318, 1
 
 	division = itemLen
 	if division < 16 :division++
@@ -304,7 +315,7 @@
 		radIco = deg2rad(360 * cnt / division - 90 + (180 / division))
 		x = 160 + int(160.0 * cos(radLine))
 		y = 160 + int(160.0 * sin(radLine))
-		color 0, 0, 0
+		setColor iniFGColor
 		line 160, 160, x, y
 
 		if cnt < itemLen {
@@ -318,10 +329,10 @@
 		}
 	loop
 
-	color 0, 0, 0 :boxf 119, 119, 201, 201
-	color 255, 255, 255 :boxf 120, 120, 200, 200
+	setColor iniFGColor :boxf 119, 119, 201, 201
+	setColor iniBGColor :boxf 120, 120, 200, 200
 	if i == -1 {
-		color 0, 0, 0 :font iniFont, 16
+		setColor iniFGColor :font iniFont, 16
 		if strlen(parentdat) > 0 {
 			pos 128, 152
 			mes "一つ上へ"
@@ -330,7 +341,7 @@
 			mes "村茶"
 		}
 	} else : if ( 0 <= i )&( i < itemLen ) {
-		color 0, 0, 0 :font iniFont, 16
+		setColor iniFGColor :font iniFont, 16
 		repeat 5
 			if strlen(itemDispName(i, cnt)) > 0 :dnt = cnt
 		loop
@@ -341,7 +352,7 @@
 			mes itemDispName(i, cnt)
 		loop
 	} else : if ( i == itemLen ) {
-		color 0, 0, 0 :font iniFont, 16 :pos 144, 152
+		setColor iniFGColor :font iniFont, 16 :pos 144, 152
 		mes "新規"
 	} else {
 		; 画面外
@@ -445,7 +456,7 @@
 	objprm idEditIcon, argIcon
 	objprm idEditType, argType
 
-	color 255, 255, 255
+	setColor iniBGColor
 	boxf 56, 112, 88, 152
 	if argIcon != "" {
 		gosub *repaintIcon
@@ -486,7 +497,7 @@
 		argIcon = refstr
 		objprm idEditIcon, argIcon
 
-		color 255, 255, 255
+		setColor iniBGColor
 		boxf 56, 112, 88, 152
 		gosub *repaintIcon
 		redraw 1
@@ -527,6 +538,8 @@
 
 	gsel 1
 	cls 0
+	setColor iniBGColor
+	boxf 0, 0, 512, 32
 
 	itemLen = 0
 	repeat noteinfo(0)
