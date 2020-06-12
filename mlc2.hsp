@@ -90,6 +90,8 @@
 ;          ;
 ;-------------------------------------------------------------------------------
 
+	notesel nt
+
 	; どのウィンドウであれ、閉じるボタンが押された時を検出
 	onexit gosub *onclose
 	oncstat = 0
@@ -101,7 +103,16 @@
 
 	; ini読み込み
 	sdim iniFiler, 1024
-	bload "mlc2.ini", iniFiler
+	sdim iniFont, 128
+
+	noteload "mlc2.ini"
+	noteget s, 0
+	iniFiler = strmid(s, 6, 1024)
+	exist( iniFiler )
+	if strsize == -1 :iniFiler = "explorer"
+	noteget s, 1
+	iniFont = strmid(s, 5, 128)
+	if strlen( iniFont ) == 0 :iniFont = msgothic
 
 	; アイテム編集画面の作成
 	screen 3, 320, 240, 2
@@ -109,21 +120,21 @@
 
 	objmode 2, 1
 	color 0, 0, 0
-	font msgothic, 16
+	font iniFont, 16
 
 	pos 16, 16
-	font msgothic, 16
+	font iniFont, 16
 	mes "名前"
 	pos 56, 16
-	font msgothic, 12
+	font iniFont, 12
 	editName = ""
 	input editName, 248, 16, 32
 	idEditName = stat
 	pos 16, 40
-	font msgothic, 16
+	font iniFont, 16
 	mes "場所"
 	pos 56, 40
-	font msgothic, 12
+	font iniFont, 12
 	editPath = ""
 	input editPath, 208, 16, 1024
 	idEditPath = stat
@@ -132,10 +143,10 @@
 	button gosub "参照", *callLocation
 	idButtonEditPath = stat
 	pos 16, 64
-	font msgothic, 16
+	font iniFont, 16
 	mes "Icon"
 	pos 56, 64
-	font msgothic, 12
+	font iniFont, 12
 	editIcon = ""
 	input editIcon, 208, 16, 1024
 	idEditIcon = stat
@@ -144,10 +155,10 @@
 	objsize 32, 20
 	button gosub "参照", *callIconLocation
 	pos 16, 88
-	font msgothic, 16
+	font iniFont, 16
 	mes "種別"
 	pos 56, 86
-	font msgothic, 12
+	font iniFont, 12
 	editType = 0
 	objsize 120, 20
 	combox editType, 40, "実行形式\nファイル\nフォルダー\nサブメニュー\n管理者権限"
@@ -155,7 +166,7 @@
 
 	pos 96, 112
 	objsize 64, 32
-	font msgothic, 16
+	font iniFont, 16
 	button gosub "登録", *registItem
 
 ;-------------------------------------------------------------------------------
@@ -310,7 +321,7 @@
 	color 0, 0, 0 :boxf 119, 119, 201, 201
 	color 255, 255, 255 :boxf 120, 120, 200, 200
 	if i == -1 {
-		color 0, 0, 0 :font msgothic, 16
+		color 0, 0, 0 :font iniFont, 16
 		if strlen(parentdat) > 0 {
 			pos 128, 152
 			mes "一つ上へ"
@@ -319,7 +330,7 @@
 			mes "村茶"
 		}
 	} else : if ( 0 <= i )&( i < itemLen ) {
-		color 0, 0, 0 :font msgothic, 16
+		color 0, 0, 0 :font iniFont, 16
 		repeat 5
 			if strlen(itemDispName(i, cnt)) > 0 :dnt = cnt
 		loop
@@ -330,7 +341,7 @@
 			mes itemDispName(i, cnt)
 		loop
 	} else : if ( i == itemLen ) {
-		color 0, 0, 0 :font msgothic, 16 :pos 144, 152
+		color 0, 0, 0 :font iniFont, 16 :pos 144, 152
 		mes "新規"
 	} else {
 		; 画面外
@@ -511,7 +522,6 @@
 ; Dat情報の読み込み |
 ;-------------------+
 *getdat
-	notesel nt
 	chdir curdir
 	noteload "data\\" + curdat
 
