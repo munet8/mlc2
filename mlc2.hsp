@@ -24,6 +24,8 @@
 #uselib "kernel32.dll"
 #func GetModuleFileNameA "GetModuleFileNameA" int, int, int
 
+#include "mod_fontdlg.as"
+
 ; 関数の定義
 #module
 #defcfunc getMx
@@ -109,27 +111,25 @@
 	sdim iniFont, 128
 
 	noteload "mlc2.ini"
-	noteget s, 0
+	noteget s, 1
 	iniFiler = strmid(s, 6, 1024)
 	exist( iniFiler )
 	if strsize == -1 :iniFiler = "explorer"
-	noteget s, 1
+	noteget s, 2
 	iniFont = strmid(s, 5, 128)
 	if strlen( iniFont ) == 0 :iniFont = msgothic
-	noteget s, 2
-	iniFGColor = int("$" + strmid(s, 9, 6))
 	noteget s, 3
+	iniFGColor = int("$" + strmid(s, 9, 6))
+	noteget s, 4
 	iniBGColor = int("$" + strmid(s, 9, 6))
 
 	; アイテム編集画面の作成
 	screen 3, 320, 240, 2
-	cls 0
 	setColor iniBGColor
 	boxf 0, 0, 320, 240
 
 	objmode 2, 1
 	setColor iniFGColor
-	font iniFont, 16
 
 	pos 16, 16
 	font iniFont, 16
@@ -177,6 +177,68 @@
 	objsize 64, 32
 	font iniFont, 16
 	button gosub "登録", *registItem
+
+	; 設定編集画面の作成
+	screen 4, 320, 240, 2
+	setColor iniBGColor
+	boxf 0, 0, 320, 240
+
+	objmode 2, 1
+	setColor iniFGColor
+
+	pos 16, 16
+	font iniFont, 16
+	setColor iniFGColor
+	mes "文字色"
+	setColor iniFGColor ^ $FFFFFF :boxf 88, 16, 104, 32
+	setColor iniFGColor           :boxf 89, 17, 103, 31
+	pos 112, 14
+	objsize 32, 20
+	font iniFont, 12
+	button gosub "変更", *setfgcolor
+
+	pos 16, 40
+	font iniFont, 16
+	setColor iniFGColor
+	mes "背景色"
+	setColor iniBGColor ^ $FFFFFF :boxf 88, 40, 104, 56
+	setColor iniBGColor           :boxf 89, 41, 103, 55
+	pos 112, 38
+	objsize 32, 20
+	font iniFont, 12
+	button gosub "変更", *setbgcolor
+
+	pos 16, 64
+	font iniFont, 16
+	setColor iniFGColor
+	mes "フォント"
+	pos 88, 64
+	font iniFont, 12
+	settingFont = iniFont
+	input settingFont, 176, 16, 1024
+	idSettingFont = stat
+	sendmsg objinfo(idSettingFont, 2), $CF, 1 ; 編集不可
+	pos 272, 62
+	objsize 32, 20
+	button gosub "変更", *setfont
+
+	pos 16, 80
+	font iniFont, 16
+	setColor iniFGColor
+	mes "ファイラ"
+	pos 88, 80
+	font iniFont, 12
+	settingFiler = iniFiler
+	input settingFiler, 176, 16, 1024
+	idSettingFiler = stat
+	pos 272, 78
+	objsize 32, 20
+	button gosub "変更", *setfiler
+
+	pos 88, 104
+	font iniFont, 12
+	objsize 48, 20
+	button gosub "閉じる", *closesetting
 
 ;-------------------------------------------------------------------------------
 ;              ;
@@ -424,6 +486,8 @@
 			if strlen(parentdat) > 0 {
 				changedat = 1
 				curdat = parentdat
+			} else {
+				gosub *settingedit
 			}
 		} else : if ev & 128 {
 			end
@@ -485,7 +549,7 @@
 
 *callLocation
 	dialog "", 16
-	if stat = 1 {
+	if stat == 1 {
 		objprm idEditPath, refstr
 		objprm idEditType, isExecutable(refstr)
 	}
@@ -493,7 +557,7 @@
 
 *callIconLocation
 	dialog "", 16
-	if stat = 1 {
+	if stat == 1 {
 		argIcon = refstr
 		objprm idEditIcon, argIcon
 
@@ -526,6 +590,78 @@
 	}
 	gosub *writedat
 	gosub *getdat
+	oncstat = 1
+	return
+
+;--------------+
+; 設定編集画面 |
+;--------------+
+*settingedit
+	gsel 0
+	EnableWindow hwnd, 0 ; 自ウィンドウを無効にする。
+
+	gsel 4, -1
+	width , , ginfo_mx - 160, ginfo_my - 120
+	gsel 4, 2
+
+	chdir curdir
+	noteload "mlc2.ini"
+
+	repeat
+		getkey ev, 27
+		if (ev == 1)|(oncstat == 1) :break
+
+		wait 5
+	loop
+	oncstat = 0
+
+	gsel 4, -1
+	gsel 0, 2
+	EnableWindow hwnd, 1
+
+	return
+
+*setfgcolor
+	dialog "", 33
+	if stat == 1 {
+		iniFGColor = ( ginfo_r << 16 ) + ( ginfo_g << 8 ) + ginfo_b
+		noteadd "fgcolor=#" + strf("%06x", iniFGColor), 3, 1
+		notesave "mlc2.ini"
+	}
+	return
+
+*setbgcolor
+	dialog "", 33
+	if stat == 1 {
+		iniBGColor = ( ginfo_r << 16 ) + ( ginfo_g << 8 ) + ginfo_b
+		noteadd "bgcolor=#" + strf("%06x", iniBGColor), 4, 1
+		notesave "mlc2.ini"
+	}
+	return
+
+*setfont
+	dim tempArray, 8
+	fontdlg tempArray, 0
+	if stat != 0 {
+		iniFont = refstr
+		objprm idSettingFont, iniFont
+		noteadd "font=" + iniFont, 2, 1
+		notesave "mlc2.ini"
+	}
+	return
+
+*setfiler
+	dialog "", 16
+	if stat == 1 {
+		iniFiler = refstr
+		objprm idSettingFiler, iniFiler
+		noteadd "filer=" + iniFiler, 1, 1
+		chdir curdir
+		notesave "mlc2.ini"
+	}
+	return
+
+*closesetting
 	oncstat = 1
 	return
 
@@ -604,6 +740,9 @@
 	return
 
 *writedat
+	chdir curdir
+	noteload "data\\" + curdat
+
 	if argIndex == -1 {
 		noteadd "[item]", -1, 0
 		noteadd "name=" + editName, -1, 0
