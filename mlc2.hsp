@@ -466,7 +466,7 @@
 		getkey ev, 27
 		if (ev == 1)|(oncstat == 1) :break
 
-		if EditType == 3 { ; サブメニュー
+		if getTypeValue(editType) == "dir" { ; サブメニュー
 			objenable idEditPath, 0
 			objenable idButtonEditPath, 0
 			if (argIndex == -1)|(itemType(i) != "dir") :objprm idEditPath, editName + ".dat"
@@ -515,7 +515,7 @@
 
 *registItem
 	notMakeSubItem = 0
-	if EditType == 2 { ; サブメニューであり、名前が重複している場合は登録しない
+	if getTypeValue(editType) == "dir" { ; サブメニューであり、名前が重複している場合は登録しない
 		chdir curdir
 		exist "data\\" + EditPath
 		if strsize >= 0 {
@@ -628,7 +628,7 @@
 	chdir curdir
 	notesave "data\\" + curdat
 
-	if ( argIndex == -1 )&( editType == 3 )&( notMakeSubItem == 0 ) {
+	if ( argIndex == -1 )&( getTypeValue(editType) == "dir" )&( notMakeSubItem == 0 ) {
 		s = "parent=" + curdat
 		bsave "data\\" + editPath, s, strlen(s)
 	}
