@@ -84,6 +84,14 @@
 	if j == 3 :t = "dir"
 	if j == 4 :t = "uac"
 	return t
+#defcfunc getLockerKey int j
+	i = j - 1
+	if i > 1 :i -= 1
+	return i
+#defcfunc getLockerValue int j
+	i = j + 1
+	if i > 2 :i += 1
+	return i
 #deffunc setColor int j
 	color j >> 16, ( j >> 8 ) & 255, j & 255
 	return
@@ -112,15 +120,19 @@
 
 	noteload "mlc2.ini"
 	noteget s, 1
+	iniLocker1 = int(strmid(s, 8, 1))
+	noteget s, 2
+	iniLocker2 = int(strmid(s, 8, 1))
+	noteget s, 3
 	iniFiler = strmid(s, 6, 1024)
 	exist( iniFiler )
 	if strsize == -1 :iniFiler = "explorer"
-	noteget s, 2
+	noteget s, 4
 	iniFont = strmid(s, 5, 128)
 	if strlen( iniFont ) == 0 :iniFont = msgothic
-	noteget s, 3
+	noteget s, 5
 	iniFGColor = int("$" + strmid(s, 9, 6))
-	noteget s, 4
+	noteget s, 6
 	iniBGColor = int("$" + strmid(s, 9, 6))
 
 	; アイテム編集画面の作成
@@ -189,53 +201,79 @@
 	pos 16, 16
 	font iniFont, 16
 	setColor iniFGColor
-	mes "文字色"
-	setColor iniFGColor ^ $FFFFFF :boxf 88, 16, 104, 32
-	setColor iniFGColor           :boxf 89, 17, 103, 31
-	pos 112, 14
+	mes "起動方法"
+	pos 88, 14
+	font iniFont, 12
+	settingLocker1 = 0
+	objsize 80, 20
+	combox settingLocker1, 40, "マウス左\nマウス右\nマウス中\n拡張1\n拡張2"
+	idSettingLocker1 = stat
+	objprm idSettingLocker1, getLockerKey( iniLocker1 )
+	pos 172, 16
+	font iniFont, 16
+	mes "→"
+	pos 192, 14
+	font iniFont, 12
+	settingLocker2 = 0
+	objsize 80, 20
+	combox settingLocker2, 40, "マウス左\nマウス右\nマウス中\n拡張1\n拡張2"
+	idSettingLocker2 = stat
+	objprm idSettingLocker2, getLockerKey( iniLocker2 )
+	pos 276, 14
 	objsize 32, 20
 	font iniFont, 12
-	button gosub "変更", *setfgcolor
+	button gosub "反映", *setlocker
 
 	pos 16, 40
 	font iniFont, 16
 	setColor iniFGColor
-	mes "背景色"
-	setColor iniBGColor ^ $FFFFFF :boxf 88, 40, 104, 56
-	setColor iniBGColor           :boxf 89, 41, 103, 55
+	mes "文字色"
+	setColor iniFGColor ^ $FFFFFF :boxf 88, 40, 104, 56
+	setColor iniFGColor           :boxf 89, 41, 103, 55
 	pos 112, 38
 	objsize 32, 20
 	font iniFont, 12
-	button gosub "変更", *setbgcolor
+	button gosub "変更", *setfgcolor
 
 	pos 16, 64
 	font iniFont, 16
 	setColor iniFGColor
+	mes "背景色"
+	setColor iniBGColor ^ $FFFFFF :boxf 88, 64, 104, 80
+	setColor iniBGColor           :boxf 89, 65, 103, 79
+	pos 112, 62
+	objsize 32, 20
+	font iniFont, 12
+	button gosub "変更", *setbgcolor
+
+	pos 16, 88
+	font iniFont, 16
+	setColor iniFGColor
 	mes "フォント"
-	pos 88, 64
+	pos 88, 88
 	font iniFont, 12
 	settingFont = iniFont
 	input settingFont, 176, 16, 1024
 	idSettingFont = stat
 	sendmsg objinfo(idSettingFont, 2), $CF, 1 ; 編集不可
-	pos 272, 62
+	pos 272, 86
 	objsize 32, 20
 	button gosub "変更", *setfont
 
-	pos 16, 80
+	pos 16, 112
 	font iniFont, 16
 	setColor iniFGColor
 	mes "ファイラ"
-	pos 88, 80
+	pos 88, 112
 	font iniFont, 12
 	settingFiler = iniFiler
 	input settingFiler, 176, 16, 1024
 	idSettingFiler = stat
-	pos 272, 78
+	pos 272, 110
 	objsize 32, 20
 	button gosub "変更", *setfiler
 
-	pos 88, 104
+	pos 88, 136
 	font iniFont, 12
 	objsize 48, 20
 	button gosub "閉じる", *closesetting
@@ -272,8 +310,8 @@
 			VK_XBUTTON2 0x06 X2 mouse button
 		*/
 		; ロッカージェスチャーRL
-		locker1st = GetAsyncKeyState(2)
-		locker2nd = GetAsyncKeyState(1)
+		locker1st = GetAsyncKeyState(iniLocker1)
+		locker2nd = GetAsyncKeyState(iniLocker2)
 		; ロッカージェスチャー
 		if ( MouseLock == 0 ) {
 			if ( locker1st != 0 )&( locker2nd == 0 ) : MouseLock = 1
@@ -621,11 +659,19 @@
 
 	return
 
+*setlocker
+	iniLocker1 = getLockerValue( settingLocker1 )
+	iniLocker2 = getLockerValue( settingLocker2 )
+	noteadd "locker1=" + iniLocker1, 1, 1
+	noteadd "locker2=" + iniLocker2, 2, 1
+	notesave "mlc2.ini"
+	return
+
 *setfgcolor
 	dialog "", 33
 	if stat == 1 {
 		iniFGColor = ( ginfo_r << 16 ) + ( ginfo_g << 8 ) + ginfo_b
-		noteadd "fgcolor=#" + strf("%06x", iniFGColor), 3, 1
+		noteadd "fgcolor=#" + strf("%06x", iniFGColor), 6, 1
 		notesave "mlc2.ini"
 	}
 	return
@@ -634,7 +680,7 @@
 	dialog "", 33
 	if stat == 1 {
 		iniBGColor = ( ginfo_r << 16 ) + ( ginfo_g << 8 ) + ginfo_b
-		noteadd "bgcolor=#" + strf("%06x", iniBGColor), 4, 1
+		noteadd "bgcolor=#" + strf("%06x", iniBGColor), 5, 1
 		notesave "mlc2.ini"
 	}
 	return
@@ -645,7 +691,7 @@
 	if stat != 0 {
 		iniFont = refstr
 		objprm idSettingFont, iniFont
-		noteadd "font=" + iniFont, 2, 1
+		noteadd "font=" + iniFont, 4, 1
 		notesave "mlc2.ini"
 	}
 	return
@@ -655,7 +701,7 @@
 	if stat == 1 {
 		iniFiler = refstr
 		objprm idSettingFiler, iniFiler
-		noteadd "filer=" + iniFiler, 1, 1
+		noteadd "filer=" + iniFiler, 3, 1
 		chdir curdir
 		notesave "mlc2.ini"
 	}
