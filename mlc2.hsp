@@ -647,7 +647,10 @@
 
 	repeat
 		getkey ev, 27
-		if (ev == 1)|(oncstat == 1) :break
+		if (ev == 1)|(oncstat == 1) {
+			gosub *setlocker
+			if oncstat == 1 :break
+		}
 
 		wait 5
 	loop
@@ -660,11 +663,16 @@
 	return
 
 *setlocker
-	iniLocker1 = getLockerValue( settingLocker1 )
-	iniLocker2 = getLockerValue( settingLocker2 )
-	noteadd "locker1=" + iniLocker1, 1, 1
-	noteadd "locker2=" + iniLocker2, 2, 1
-	notesave "mlc2.ini"
+	if settingLocker1 == settingLocker2 {
+		dialog "起動方法は\n別々のボタンを組み合わせて下さい"
+		if oncstat == 1 :oncstat = 0
+	} else {
+		iniLocker1 = getLockerValue( settingLocker1 )
+		iniLocker2 = getLockerValue( settingLocker2 )
+		noteadd "locker1=" + iniLocker1, 1, 1
+		noteadd "locker2=" + iniLocker2, 2, 1
+		notesave "mlc2.ini"
+	}
 	return
 
 *setfgcolor
