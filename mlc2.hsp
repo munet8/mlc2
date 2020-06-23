@@ -1,3 +1,5 @@
+;#makeopt icon_rsrc "mlc2.ico"
+
 ; ref)
 ; exeアイコンの取り出し http://lhsp.s206.xrea.com/hsp_file.html
 ; オブジェクトの活性/非活性 http://lhsp.s206.xrea.com/hsp_object2.html
