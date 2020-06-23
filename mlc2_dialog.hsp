@@ -1,0 +1,149 @@
+*createEditDialog
+
+	; アイテム編集画面の作成
+	screen 3, 320, 240, 2
+	cls
+	setColor iniBGColor
+	boxf 0, 0, 320, 240
+
+	objmode 2, 1
+	setColor iniFGColor
+
+	pos 16, 16
+	font iniFont, 16
+	mes "名前"
+	pos 56, 16
+	font iniFont, 12
+	editName = ""
+	input editName, 248, 16, 32
+	idEditName = stat
+	pos 16, 40
+	font iniFont, 16
+	mes "場所"
+	pos 56, 40
+	font iniFont, 12
+	editPath = ""
+	input editPath, 208, 16, 1024
+	idEditPath = stat
+	pos 272, 38
+	objsize 32, 20
+	button gosub "参照", *callLocation
+	idButtonEditPath = stat
+	pos 16, 64
+	font iniFont, 16
+	mes "Icon"
+	pos 56, 64
+	font iniFont, 12
+	editIcon = ""
+	input editIcon, 208, 16, 1024
+	idEditIcon = stat
+	sendmsg objinfo(idEditIcon, 2), $CF, 1 ; 編集不可
+	pos 272, 62
+	objsize 32, 20
+	button gosub "参照", *callIconLocation
+	pos 16, 88
+	font iniFont, 16
+	mes "種別"
+	pos 56, 86
+	font iniFont, 12
+	editType = 0
+	objsize 120, 20
+	combox editType, 40, "実行形式\nファイル\nフォルダー\nサブメニュー\n管理者権限"
+	idEditType = stat
+
+	pos 96, 112
+	objsize 64, 32
+	font iniFont, 16
+	button gosub "登録", *registItem
+
+	return
+
+*createSettingDialog
+
+	; 設定編集画面の作成
+	screen 4, 320, 240, 2
+	cls
+	setColor iniBGColor
+	boxf 0, 0, 320, 240
+
+	objmode 2, 1
+	setColor iniFGColor
+
+	pos 16, 16
+	font iniFont, 16
+	setColor iniFGColor
+	mes "起動方法"
+	pos 88, 14
+	font iniFont, 12
+	settingLocker1 = 0
+	objsize 80, 20
+	combox settingLocker1, 40, "マウス左\nマウス右\nマウス中\n拡張1\n拡張2"
+	idSettingLocker1 = stat
+	objprm idSettingLocker1, getLockerKey( iniLocker1 )
+	pos 172, 16
+	font iniFont, 16
+	mes "→"
+	pos 192, 14
+	font iniFont, 12
+	settingLocker2 = 0
+	objsize 80, 20
+	combox settingLocker2, 40, "マウス左\nマウス右\nマウス中\n拡張1\n拡張2"
+	idSettingLocker2 = stat
+	objprm idSettingLocker2, getLockerKey( iniLocker2 )
+
+	pos 16, 40
+	font iniFont, 16
+	setColor iniFGColor
+	mes "文字色"
+	setColor iniFGColor ^ $FFFFFF :boxf 88, 40, 104, 56
+	setColor iniFGColor           :boxf 89, 41, 103, 55
+	pos 112, 38
+	objsize 32, 20
+	font iniFont, 12
+	button gosub "変更", *setfgcolor
+
+	pos 16, 64
+	font iniFont, 16
+	setColor iniFGColor
+	mes "背景色"
+	setColor iniBGColor ^ $FFFFFF :boxf 88, 64, 104, 80
+	setColor iniBGColor           :boxf 89, 65, 103, 79
+	pos 112, 62
+	objsize 32, 20
+	font iniFont, 12
+	button gosub "変更", *setbgcolor
+
+	pos 16, 88
+	font iniFont, 16
+	setColor iniFGColor
+	mes "フォント"
+	pos 88, 88
+	font iniFont, 12
+	settingFont = iniFont
+	input settingFont, 176, 16, 1024
+	idSettingFont = stat
+	sendmsg objinfo(idSettingFont, 2), $CF, 1 ; 編集不可
+	pos 272, 86
+	objsize 32, 20
+	button gosub "変更", *setfont
+
+	pos 16, 112
+	font iniFont, 16
+	setColor iniFGColor
+	mes "ファイラ"
+	pos 88, 112
+	font iniFont, 12
+	settingFiler = iniFiler
+	input settingFiler, 176, 16, 1024
+	idSettingFiler = stat
+	sendmsg objinfo(idSettingFiler, 2), $CF, 1 ; 編集不可
+	pos 272, 110
+	objsize 32, 20
+	button gosub "変更", *setfiler
+
+	pos 88, 136
+	font iniFont, 12
+	objsize 48, 20
+	button gosub "閉じる", *closesetting
+	
+	return
