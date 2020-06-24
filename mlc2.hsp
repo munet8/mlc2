@@ -592,8 +592,6 @@ dim SHFILEINFO, 88
 		iniLocker2 = getLockerValue( settingLocker2 )
 		noteadd "locker1=" + iniLocker1, 1, 1
 		noteadd "locker2=" + iniLocker2, 2, 1
-		chdir curdir
-		notesave "mlc2.ini"
 	}
 	return
 
@@ -605,8 +603,6 @@ dim SHFILEINFO, 88
 		setColor iniFGColor           :boxf 89, 41, 103, 55
 
 		noteadd "fgcolor=#" + strf("%06x", iniFGColor), 5, 1
-		chdir curdir
-		notesave "mlc2.ini"
 	}
 	return
 
@@ -618,8 +614,6 @@ dim SHFILEINFO, 88
 		setColor iniBGColor           :boxf 89, 65, 103, 79
 
 		noteadd "bgcolor=#" + strf("%06x", iniBGColor), 6, 1
-		chdir curdir
-		notesave "mlc2.ini"
 	}
 	return
 
@@ -630,8 +624,6 @@ dim SHFILEINFO, 88
 		iniFont = refstr
 		objprm idSettingFont, iniFont
 		noteadd "font=" + iniFont, 4, 1
-		chdir curdir
-		notesave "mlc2.ini"
 	}
 	return
 
@@ -641,13 +633,13 @@ dim SHFILEINFO, 88
 		iniFiler = refstr
 		objprm idSettingFiler, iniFiler
 		noteadd "filer=" + iniFiler, 3, 1
-		chdir curdir
-		notesave "mlc2.ini"
 	}
 	return
 
 *closesetting
 	oncstat = 1
+	chdir curdir
+	notesave "mlc2.ini"
 	return
 
 ;-------------------+

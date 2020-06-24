@@ -4,13 +4,16 @@ name=Internet Explorer
 path=C:\Program Files (x86)\Internet Explorer\iexplore.exe
 icon=C:\Program Files (x86)\Internet Explorer\iexplore.exe
 type=exe
+indx=0
 [item]
 name=ÉÅÉÇí†
 path=notepad.exe
 icon=C:\Windows\system32\notepad.exe
 type=exe
+indx=0
 [item]
 name=ÉyÉCÉìÉg
 path=mspaint.exe
 icon=C:\Windows\system32\mspaint.exe
 type=exe
+indx=0
