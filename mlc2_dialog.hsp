@@ -51,7 +51,18 @@
 	combox editType, 40, "実行形式\nファイル\nフォルダー\nサブメニュー\n管理者権限"
 	idEditType = stat
 
-	pos 96, 112
+	editIconIndex = 0
+	editIconIndexMax = 1
+	pos 56, 118
+	font iniFont, 12
+	objsize 16, 20
+	button gosub "<", *decreaseIconIndex
+	pos 112, 118
+	font iniFont, 12
+	objsize 16, 20
+	button gosub ">", *increaseIconIndex
+
+	pos 136, 112
 	objsize 64, 32
 	font iniFont, 16
 	button gosub "登録", *registItem
