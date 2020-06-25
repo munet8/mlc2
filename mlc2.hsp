@@ -460,7 +460,12 @@ dim SHFILEINFO, 88
 	argName = getpath( fname, 9 )
 	argPath = fname
 	argIcon = fname
-	argType = isNotExecutable( fname )
+	dirlist temp, fname, 5
+	if ( stat == 1 ) {
+		argType = getTypeKey( "fold" )
+	} else {
+		argType = isNotExecutable( fname )
+	}
 	editIconIndex = 0
 	gosub *itemedit
 	changedat = 1
