@@ -19,6 +19,10 @@
 #cfunc GetAsyncKeyState "GetAsyncKeyState" int
 #uselib "shell32"
 #func ShellExecuteEx "ShellExecuteEx" sptr
+#func DragAcceptFiles "DragAcceptFiles" int,int
+#func DragQueryFile   "DragQueryFileA"  int,int,int,int
+#func DragQueryPoint  "DragQueryPoint"  int,int
+#func DragFinish      "DragFinish"      int
 #func ExtractIconEx "ExtractIconExA" int, int, int, int, int
 #func Shell_NotifyIcon "Shell_NotifyIcon" int, int
 #uselib "kernel32.dll"
@@ -259,9 +263,13 @@ dim SHFILEINFO, 88
 	if x > (ginfo_dispx - 320) :x = ginfo_dispx - 320
 	if y < 0 :y = 0
 	if y > (ginfo_dispy - 320) :y = ginfo_dispy - 320
+
 	bgscr 0, 320, 320, 0, x, y
 	hRgn = CreateEllipticRgn (0, 0, 320, 320)
 	SetWindowRgn hwnd, hRgn, 1
+
+	oncmd gosub *onDropFiles, 0x0233
+	DragAcceptFiles hwnd, 1
 
 	setColor iniBGColor
 	boxf 0, 0, 320, 320
@@ -434,6 +442,29 @@ dim SHFILEINFO, 88
 			if stat == 6 :end
 		}
 	}
+	return
+
+*onDropFiles
+	hdrop = wParam
+	DragQueryFile hdrop, -1, 0, 0
+
+	sdim fname, 260
+	repeat 1
+	;repeat ndrop
+		DragQueryFile hdrop, cnt, varptr(fname), 260
+	loop
+
+	DragFinish hdrop
+
+	argIndex = -1 ; êVãK
+	argName = ""
+	argPath = fname
+	argIcon = fname
+	argType = 1
+	editIconIndex = 0
+	gosub *itemedit
+	changedat = 1
+
 	return
 
 ;------------------+
