@@ -391,17 +391,14 @@ dim SHFILEINFO, 88
 					clickitem = 1
 				}
 			} else {
-				dialog "", 16
-				if stat == 1 {
-					argIndex = -1 ; êVãK
-					argName = ""
-					argPath = refstr
-					argIcon = refstr
-					argType = isNotExecutable(refstr)
-					editIconIndex = 0
-					gosub *itemedit
-					changedat = 1
-				}
+				argIndex = -1 ; êVãK
+				argName = ""
+				argPath = ""
+				argIcon = "C:\\Windows\\System32\\shell32.dll"
+				argType = 1
+				editIconIndex = 0
+				gosub *itemedit
+				changedat = 1
 			}
 		} else : if ev & 512 {
 			if i < itemLen {
