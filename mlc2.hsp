@@ -457,10 +457,10 @@ dim SHFILEINFO, 88
 	DragFinish hdrop
 
 	argIndex = -1 ; êVãK
-	argName = ""
+	argName = getpath( fname, 9 )
 	argPath = fname
 	argIcon = fname
-	argType = 1
+	argType = isNotExecutable( fname )
 	editIconIndex = 0
 	gosub *itemedit
 	changedat = 1
