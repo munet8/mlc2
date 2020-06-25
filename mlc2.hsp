@@ -433,7 +433,8 @@ dim SHFILEINFO, 88
 				changedat = 1
 			}
 		} else : if ev & 128 {
-			end
+			dialog "MulanchaÇèIóπÇµÇ‹Ç∑Ç©ÅH", 2
+			if stat == 6 :end
 		}
 	}
 	return
@@ -502,6 +503,7 @@ dim SHFILEINFO, 88
 		argIcon = refstr
 		objprm idEditIcon, argIcon
 
+		editIconIndex = 0
 		gosub *repaintIcon
 	}
 	return
