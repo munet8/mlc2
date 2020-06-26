@@ -145,6 +145,8 @@ dim SHFILEINFO, 88
 	; どのウィンドウであれ、閉じるボタンが押された時を検出
 	onexit gosub *onclose
 	oncstat = 0
+	ondstat = 0
+	sdim ondfname, 1024
 
 	; タスクトレイのアイコンクリック
 	oncmd gosub *clicktasktray, $1400
@@ -298,6 +300,7 @@ dim SHFILEINFO, 88
 		wait 1
 		if ( changedat | puttasktray | clickitem ) == 1 :break
 	loop
+	ondstat = 0
 
 	if ( puttasktray | clickitem ) == 1 :goto *tasktraylabel
 
@@ -388,7 +391,21 @@ dim SHFILEINFO, 88
 	return
 
 *event
-	if ( i >= 0 ) {
+	if ( ondstat == 1 ) {
+		argIndex = -1 ; 新規
+		argName = getpath( ondfname, 9 )
+		argPath = ondfname
+		argIcon = ondfname
+		dirlist temp, ondfname, 5
+		if ( stat == 1 ) {
+			argType = getTypeKey( "fold" )
+		} else {
+			argType = isNotExecutable( ondfname )
+		}
+		editIconIndex = 0
+		gosub *itemedit
+		changedat = 1
+	} else : if ( i >= 0 ) {
 		stick ev, 0, 1
 		if ev & 256 {
 			if i < itemLen {
@@ -422,7 +439,8 @@ dim SHFILEINFO, 88
 				puttasktray = 1
 			}
 		} else : if ev & 128 {
-			end
+			dialog "Mulanchaを終了しますか？", 2
+			if stat == 6 :end
 		}
 	} else : if ( i == -1 ) {
 		stick ev, 0, 1
@@ -456,19 +474,8 @@ dim SHFILEINFO, 88
 
 	DragFinish hdrop
 
-	argIndex = -1 ; 新規
-	argName = getpath( fname, 9 )
-	argPath = fname
-	argIcon = fname
-	dirlist temp, fname, 5
-	if ( stat == 1 ) {
-		argType = getTypeKey( "fold" )
-	} else {
-		argType = isNotExecutable( fname )
-	}
-	editIconIndex = 0
-	gosub *itemedit
-	changedat = 1
+	ondstat = 1
+	ondfname = fname
 
 	return
 
