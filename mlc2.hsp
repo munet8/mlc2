@@ -525,20 +525,27 @@ dim SHFILEINFO, 88
 *callLocation
 	dialog "", 16
 	if stat == 1 {
-		objprm idEditPath, refstr
-		objprm idEditType, isNotExecutable(refstr)
+		s = refstr
+		objprm idEditPath, s
+		objprm idEditType, isNotExecutable( s )
+
+		dialog "今設定したファイルを\nアイコンにも反映しますか？", 2
+		if stat == 6 :gosub *callIconLocationInner
 	}
 	return
 
 *callIconLocation
 	dialog "", 16
-	if stat == 1 {
-		argIcon = refstr
-		objprm idEditIcon, argIcon
+	s = refstr
+	if stat == 1 :gosub *callIconLocationInner
+	return
 
-		editIconIndex = 0
-		gosub *repaintIcon
-	}
+*callIconLocationInner
+	argIcon = s
+	objprm idEditIcon, argIcon
+
+	editIconIndex = 0
+	gosub *repaintIcon
 	return
 
 *repaintIcon
