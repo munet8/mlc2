@@ -276,11 +276,6 @@ dim SHFILEINFO, 88
 	setColor iniBGColor
 	boxf 0, 0, 320, 320
 
-	buffer 1, 512, 32, 0
-	gsel 1
-	cls 0
-	gsel 0
-
 	gosub *getdat
 
 ;-------------------------------------------------------------------------------
@@ -291,14 +286,14 @@ dim SHFILEINFO, 88
 
 	gsel 0, 2
 
-	changedat = 0
+	reloaddat = 0
 	puttasktray = 0
 	clickitem = 0
 	repeat
 		gosub *drawing
 		gosub *event
 		wait 1
-		if ( changedat | puttasktray | clickitem ) == 1 :break
+		if ( reloaddat | puttasktray | clickitem ) == 1 :break
 	loop
 	ondstat = 0
 
@@ -342,10 +337,6 @@ dim SHFILEINFO, 88
 		; 描画
 		radLine = deg2rad(360 * cnt / division - 90)
 		radIco = deg2rad(360 * cnt / division - 90 + (180 / division))
-		x = 160 + int(160.0 * cos(radLine))
-		y = 160 + int(160.0 * sin(radLine))
-		setColor iniFGColor
-		line 160, 160, x, y
 
 		if cnt < itemLen {
 			; アイコン描画
@@ -356,6 +347,11 @@ dim SHFILEINFO, 88
 		} else {
 			; 新規
 		}
+
+		x = 160 + int(160.0 * cos(radLine))
+		y = 160 + int(160.0 * sin(radLine))
+		setColor iniFGColor
+		line 160, 160, x, y
 	loop
 
 	setColor iniFGColor :boxf 119, 119, 201, 201
@@ -404,13 +400,13 @@ dim SHFILEINFO, 88
 		}
 		editIconIndex = 0
 		gosub *itemedit
-		changedat = 1
+		reloaddat = 1
 	} else : if ( i >= 0 ) {
 		stick ev, 0, 1
 		if ev & 256 {
 			if i < itemLen {
 				if itemType(i) == "dir" {
-					changedat = 1
+					reloaddat = 1
 					curdat = itemPath(i)
 				} else {
 					clickitem = 1
@@ -423,7 +419,7 @@ dim SHFILEINFO, 88
 				argType = 1
 				editIconIndex = 0
 				gosub *itemedit
-				changedat = 1
+				reloaddat = 1
 			}
 		} else : if ev & 512 {
 			if i < itemLen {
@@ -434,7 +430,7 @@ dim SHFILEINFO, 88
 				argType = getTypeKey(itemType(i))
 				editIconIndex = itemIconIndex(i)
 				gosub *itemedit
-				changedat = 1
+				reloaddat = 1
 			} else {
 				puttasktray = 1
 			}
@@ -446,14 +442,14 @@ dim SHFILEINFO, 88
 		stick ev, 0, 1
 		if ev & 256 {
 			if strlen(parentdat) > 0 {
-				changedat = 1
+				reloaddat = 1
 				curdat = parentdat
 			} else {
 				gosub *settingedit
 
 				gosub *createEditDialog
 				gosub *createSettingDialog
-				changedat = 1
+				reloaddat = 1
 			}
 		} else : if ev & 128 {
 			dialog "Mulanchaを終了しますか？", 2
@@ -615,6 +611,8 @@ dim SHFILEINFO, 88
 	chdir curdir
 	noteload "mlc2.ini"
 
+	changebgcolor = 0
+
 	repeat
 		getkey ev, 27
 		if (ev == 1)|(oncstat == 1) {
@@ -625,6 +623,15 @@ dim SHFILEINFO, 88
 		wait 5
 	loop
 	oncstat = 0
+
+	if ( changebgcolor == 1 ) {
+		chdir curdir + "\\data"
+		dirlist temp, "*.bmp"
+		split temp, "\n", array
+		repeat stat - 1
+			delete array(cnt)
+		loop
+	}
 
 	gsel 4, -1
 	gsel 0, 2
@@ -663,6 +670,7 @@ dim SHFILEINFO, 88
 		setColor iniBGColor           :boxf 89, 65, 103, 79
 
 		noteadd "bgcolor=#" + strf("%06x", iniBGColor), 6, 1
+		changebgcolor = 1
 	}
 	return
 
@@ -698,10 +706,16 @@ dim SHFILEINFO, 88
 	chdir curdir
 	noteload "data\\" + curdat
 
+	databmp = "data\\" + curdat +".bmp"
+	buffer 1, 512, 32, 0
 	gsel 1
-	cls 0
 	setColor iniBGColor
-	boxf 0, 0, 512, 32
+	boxf
+	exist databmp
+	databmpsize = strsize
+	if databmpsize >= 0 {
+		picload databmp, 0
+	}
 
 	itemLen = 0
 	repeat noteinfo(0)
@@ -717,8 +731,8 @@ dim SHFILEINFO, 88
 	sdim itemType, 8, itemLen
 	dim  itemIconIndex, itemLen
 
+	; アイコン以外を読み込む
 	len = -1
-	; アイコン以外を先に処理する
 	repeat noteinfo(0)
 		noteget s, cnt
 		t = strmid(s, 0, 5)
@@ -729,17 +743,23 @@ dim SHFILEINFO, 88
 		if t == "indx=" :itemIconIndex(len) = int(strmid(s, 5, 16))
 	loop
 
-	len = -1
-	repeat noteinfo(0)
-		noteget s, cnt
-		t = strmid(s, 0, 5)
-		if s == "[item]" :len++
-		if t == "icon=" {
-			; アイコン取得
-			itemIcon(len) = strmid(s, 5, 1024)
-			drawIcon2Hdc itemIcon(len), 32 * len, 0, itemIconIndex(len)
-		}
-	loop
+	if databmpsize < 0 {
+		; テンポラリbmpがない場合は、icoを読み込む
+		len = -1
+		repeat noteinfo(0)
+			noteget s, cnt
+			t = strmid(s, 0, 5)
+			if s == "[item]" :len++
+			if t == "icon=" {
+				; アイコン取得
+				itemIcon(len) = strmid(s, 5, 1024)
+				drawIcon2Hdc itemIcon(len), 32 * len, 0, itemIconIndex(len)
+			}
+		loop
+
+		chdir curdir
+		bmpsave databmp
+	}
 
 	len++
 	itemName(len) = ""
@@ -813,6 +833,8 @@ dim SHFILEINFO, 88
 		s = "parent=" + curdat
 		bsave "data\\" + editPath, s, strlen(s)
 	}
+
+	delete "data\\" + curdat + ".bmp"
 
 	return
 
