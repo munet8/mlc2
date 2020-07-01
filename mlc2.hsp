@@ -739,6 +739,7 @@ dim SHFILEINFO, 88
 		if s == "[item]" :len++
 		if t == "name=" :itemName(len) = strmid(s, 5, 32)
 		if t == "path=" :itemPath(len) = strmid(s, 5, 1024)
+		if t == "icon=" :itemIcon(len) = strmid(s, 5, 1024)
 		if t == "type=" :itemType(len) = strmid(s, 5, 8)
 		if t == "indx=" :itemIconIndex(len) = int(strmid(s, 5, 16))
 	loop
@@ -752,7 +753,6 @@ dim SHFILEINFO, 88
 			if s == "[item]" :len++
 			if t == "icon=" {
 				; アイコン取得
-				itemIcon(len) = strmid(s, 5, 1024)
 				drawIcon2Hdc itemIcon(len), 32 * len, 0, itemIconIndex(len)
 			}
 		loop
@@ -829,12 +829,27 @@ dim SHFILEINFO, 88
 	chdir curdir
 	notesave "data\\" + curdat
 
+	; 新規サブメニューの場合
 	if ( argIndex == -1 )&( getTypeValue(editType) == "dir" )&( notMakeSubItem == 0 ) {
 		s = "parent=" + curdat
 		bsave "data\\" + editPath, s, strlen(s)
 	}
 
-	delete "data\\" + curdat + ".bmp"
+	; 中間bmpの作成
+	gsel 1
+	if ( argIndex == -1 ) {
+		; 新規
+		drawIcon2Hdc editIcon, 32 * itemLen, 0, editIconIndex
+		redraw 1
+	} else {
+		; 編集
+		setColor iniBGColor
+		boxf 32 * argIndex, 0, 32 * ( argIndex + 1 ), 32
+		drawIcon2Hdc editIcon, 32 * argIndex, 0, editIconIndex
+		redraw 1
+	}
+	bmpsave "data\\" + curdat + ".bmp"
+	gsel 3
 
 	return
 
