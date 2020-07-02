@@ -1,4 +1,5 @@
 ;#makeopt icon_rsrc "mlc2.ico"
+#packopt name "mlc2.exe"
 
 ; ref)
 ; アイコンの取り出し http://lhsp.s206.xrea.com/hsp_file.html (.lnkが表示可能)
@@ -706,7 +707,7 @@ dim SHFILEINFO, 88
 	chdir curdir
 	noteload "data\\" + curdat
 
-	databmp = "data\\" + curdat +".bmp"
+	databmp = "data\\" + getpath( curdat, 1 ) +".bmp"
 	buffer 1, 512, 32, 0
 	gsel 1
 	setColor iniBGColor
@@ -848,7 +849,7 @@ dim SHFILEINFO, 88
 		drawIcon2Hdc editIcon, 32 * argIndex, 0, editIconIndex
 		redraw 1
 	}
-	bmpsave "data\\" + curdat + ".bmp"
+	bmpsave "data\\" + getpath( curdat, 1 ) + ".bmp"
 	gsel 3
 
 	return
