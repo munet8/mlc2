@@ -266,18 +266,21 @@ dim SHFILEINFO, 88
 	if x > (ginfo_dispx - 320) :x = ginfo_dispx - 320
 	if y < 0 :y = 0
 	if y > (ginfo_dispy - 320) :y = ginfo_dispy - 320
-
 	bgscr 0, 320, 320, 0, x, y
 	hRgn = CreateEllipticRgn (0, 0, 320, 320)
 	SetWindowRgn hwnd, hRgn, 1
-
-	oncmd gosub *onDropFiles, 0x0233
-	DragAcceptFiles hwnd, 1
 
 	setColor iniBGColor
 	boxf 0, 0, 320, 320
 
 	gosub *getdat
+
+	oncmd gosub *onDropFiles, 0x0233
+	if itemLen < 16 {
+		DragAcceptFiles hwnd, 1
+	} else {
+		DragAcceptFiles hwnd, 0
+	}
 
 ;-------------------------------------------------------------------------------
 ;          ;
