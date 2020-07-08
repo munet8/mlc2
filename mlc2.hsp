@@ -505,6 +505,13 @@ dim SHFILEINFO, 88
 		gosub *repaintIcon
 	}
 
+	if (argIndex == -1) {
+		objenable idDeleteItem, 0
+	} else {
+		objenable idDeleteItem, 1
+	}
+	editMode = 0
+
 	repeat
 		getkey ev, 27
 		if (ev == 1)|(oncstat == 1) :break
@@ -593,6 +600,15 @@ dim SHFILEINFO, 88
 			notMakeSubItem = 1
 		}
 	}
+	gosub *writedat
+	gosub *getdat
+	oncstat = 1
+	return
+
+*deleteItem
+	dialog EditName + "を削除します。よろしいですか？", 3
+	if stat == 7 :return
+	editMode = 1
 	gosub *writedat
 	gosub *getdat
 	oncstat = 1
@@ -798,13 +814,29 @@ dim SHFILEINFO, 88
 	noteload "data\\" + curdat
 
 	if argIndex == -1 {
+		; 新規
 		noteadd "[item]", -1, 0
 		noteadd "name=" + editName, -1, 0
 		noteadd "path=" + editPath, -1, 0
 		noteadd "icon=" + editIcon, -1, 0
 		noteadd "type=" + getTypeValue(editType), -1, 0
 		noteadd "indx=" + editIconIndex, -1, 0
+	} else : if editMode == 1 {
+		; 削除
+		len = -1
+		repeat noteinfo(0)
+			noteget s, cnt
+			if s == "[item]" :len++
+			if len == argIndex {
+				do
+					notedel cnt
+					noteget s, cnt
+				until ( s == "[item]" )|( cnt >= noteinfo(0) )
+				len++
+			}
+		loop
 	} else {
+		; 編集
 		len = -1
 		writeflag = 0
 		repeat noteinfo(0)
@@ -842,6 +874,14 @@ dim SHFILEINFO, 88
 		; 新規
 		pos 32 * itemLen, 0
 		gcopy 3, 76, 112, 32, 32
+	} else : if editMode == 1 {
+		; 削除
+		setColor iniBGColor
+		if ( argIndex < 15 ) {
+			pos 32 * argIndex, 0
+			gcopy 1, 32 * ( argIndex + 1 ), 0, 32 * ( 15 - argIndex ), 32
+		}
+		boxf 480, 0, 512, 32
 	} else {
 		; 編集
 		setColor iniBGColor

@@ -67,6 +67,12 @@
 	font iniFont, 16
 	button gosub "“o˜^", *registItem
 
+	pos 208, 112
+	objsize 64, 32
+	font iniFont, 16
+	button gosub "íœ", *deleteItem
+	idDeleteItem = stat
+
 	return
 
 *createSettingDialog
