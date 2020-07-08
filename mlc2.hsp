@@ -840,14 +840,14 @@ dim SHFILEINFO, 88
 	gsel 1
 	if ( argIndex == -1 ) {
 		; êVãK
-		drawIcon2Hdc editIcon, 32 * itemLen, 0, editIconIndex
-		redraw 1
+		pos 32 * itemLen, 0
+		gcopy 3, 76, 112, 32, 32
 	} else {
 		; ï“èW
 		setColor iniBGColor
 		boxf 32 * argIndex, 0, 32 * ( argIndex + 1 ), 32
-		drawIcon2Hdc editIcon, 32 * argIndex, 0, editIconIndex
-		redraw 1
+		pos 32 * argIndex, 0
+		gcopy 3, 76, 112, 32, 32
 	}
 	bmpsave "data\\" + getpath( curdat, 1 ) + ".bmp"
 	gsel 3
