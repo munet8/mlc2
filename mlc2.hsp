@@ -279,6 +279,7 @@ dim SHFILEINFO, 88
 	if itemLen < 16 {
 		DragAcceptFiles hwnd, 1
 	} else {
+		; アイテム数が最大の場合はD&Dを受け付けない
 		DragAcceptFiles hwnd, 0
 	}
 
@@ -609,7 +610,27 @@ dim SHFILEINFO, 88
 	return
 
 *deleteItem
-	dialog EditName + "を削除します。よろしいですか？", 3
+	if itemType(i) == "dir" {
+		; サブメニュー
+		chdir curdir + "\\data"
+		dirlist temp, "*.dat"
+		split temp, "\n", array
+		u = ""
+		repeat stat - 1
+			bload array(cnt), s
+			t = strmid(s, 0, instr(s, 0, "\n"))
+			if t == "parent="+itemPath(i) {
+				u += "\n" + array(cnt)
+			}
+		loop
+		if strlen(u) > 0 {
+			dialog itemName(i) + "は以下のサブメニューから参照されているため、削除できません。" + u
+			return
+		}
+	} else {
+		; サブメニュー以外
+	}
+	dialog itemName(i) + "を削除します。よろしいですか？", 3
 	if stat == 7 :return
 	editMode = 1
 	gosub *writedat
