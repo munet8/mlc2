@@ -611,7 +611,7 @@ dim SHFILEINFO, 88
 
 *deleteItem
 	if itemType(i) == "dir" {
-		; サブメニュー
+		; サブメニューの場合は参照を精査する
 		chdir curdir + "\\data"
 		dirlist temp, "*.dat"
 		split temp, "\n", array
@@ -627,13 +627,20 @@ dim SHFILEINFO, 88
 			dialog itemName(i) + "は以下のサブメニューから参照されているため、削除できません。" + u
 			return
 		}
-	} else {
-		; サブメニュー以外
 	}
 	dialog itemName(i) + "を削除します。よろしいですか？", 3
 	if stat == 7 :return
 	editMode = 1
 	gosub *writedat
+	if itemType(i) == "dir" {
+		dialog "サブメニューのファイル自体を削除しますか？\n残しておくと、再度参照できます。", 3
+		if stat == 6 {
+			chdir curdir + "\\data"
+			dirlist temp, "*.bmp"
+			delete itemPath( i )
+			delete getpath( itemPath(i), 1 ) + ".bmp"
+		}
+	}
 	gosub *getdat
 	oncstat = 1
 	return
