@@ -147,6 +147,8 @@ dim SHFILEINFO, 88
 	onexit gosub *onclose
 	oncstat = 0
 	ondstat = 0
+	onestat = 0
+	reloaddatbutnotmove = 0
 	sdim ondfname, 1024
 
 	; タスクトレイのアイコンクリック
@@ -260,15 +262,17 @@ dim SHFILEINFO, 88
 
 *initwindow
 	; 円形ウィンドウ作成
-	x = ginfo_mx - 160
-	y = ginfo_my - 160
-	if x < 0 :x = 0
-	if x > (ginfo_dispx - 320) :x = ginfo_dispx - 320
-	if y < 0 :y = 0
-	if y > (ginfo_dispy - 320) :y = ginfo_dispy - 320
-	bgscr 0, 320, 320, 0, x, y
-	hRgn = CreateEllipticRgn (0, 0, 320, 320)
-	SetWindowRgn hwnd, hRgn, 1
+	if reloaddatbutnotmove == 0 {
+		x = ginfo_mx - 160
+		y = ginfo_my - 160
+		if x < 0 :x = 0
+		if x > (ginfo_dispx - 320) :x = ginfo_dispx - 320
+		if y < 0 :y = 0
+		if y > (ginfo_dispy - 320) :y = ginfo_dispy - 320
+		bgscr 0, 320, 320, 0, x, y
+		hRgn = CreateEllipticRgn (0, 0, 320, 320)
+		SetWindowRgn hwnd, hRgn, 1
+	}
 
 	setColor iniBGColor
 	boxf 0, 0, 320, 320
@@ -292,8 +296,12 @@ dim SHFILEINFO, 88
 	gsel 0, 2
 
 	reloaddat = 0
+	reloaddatbutnotmove = 0
 	puttasktray = 0
 	clickitem = 0
+
+	onestat = -2
+
 	repeat
 		gosub *drawing
 		gosub *event
@@ -409,23 +417,7 @@ dim SHFILEINFO, 88
 	} else : if ( i >= 0 ) {
 		stick ev, 0, 1
 		if ev & 256 {
-			if i < itemLen {
-				if itemType(i) == "dir" {
-					reloaddat = 1
-					curdat = itemPath(i)
-				} else {
-					clickitem = 1
-				}
-			} else {
-				argIndex = -1 ; 新規
-				argName = ""
-				argPath = ""
-				argIcon = "C:\\Windows\\System32\\shell32.dll"
-				argType = 1
-				editIconIndex = 0
-				gosub *itemedit
-				reloaddat = 1
-			}
+			if i < itemLen :onestat = i
 		} else : if ev & 512 {
 			if i < itemLen {
 				argIndex = i ; 編集
@@ -442,6 +434,38 @@ dim SHFILEINFO, 88
 		} else : if ev & 128 {
 			dialog "Mulanchaを終了しますか？", 2
 			if stat == 6 :end
+		}
+
+		if onestat >= 0 {
+			stick ev, 256, 1
+			if ev & 256 {
+			} else {
+				if ( i != onestat )&( i < itemLen ) {
+					gosub *movedat
+					onestat = -2
+					reloaddat = 1
+					reloaddatbutnotmove = 1
+				} else {
+					onestat = -2
+					if i < itemLen {
+						if itemType(i) == "dir" {
+							reloaddat = 1
+							curdat = itemPath(i)
+						} else {
+							clickitem = 1
+						}
+					} else {
+						argIndex = -1 ; 新規
+						argName = ""
+						argPath = ""
+						argIcon = "C:\\Windows\\System32\\shell32.dll"
+						argType = 1
+						editIconIndex = 0
+						gosub *itemedit
+						reloaddat = 1
+					}
+				}
+			}
 		}
 	} else : if ( i == -1 ) {
 		stick ev, 0, 1
@@ -665,6 +689,77 @@ dim SHFILEINFO, 88
 	}
 	bmpsave "data\\" + getpath( curdat, 1 ) + ".bmp"
 	gsel 3
+
+	return
+
+*movedat
+	; 移動は特殊なので別ルーチン
+	movea = onestat :moveb = i
+
+	chdir curdir
+	noteload "data\\" + curdat
+
+	buffer 5, 32, 32, 0
+
+	len = -1
+	dnt2 = -1
+	dnt4 = -1
+	repeat noteinfo(0)
+		noteget s, cnt
+		if s == "[item]" {
+			len++
+			if len == movea :dnt1 = cnt
+			if len == ( movea + 1 ) :dnt2 = cnt
+			if len == moveb :dnt3 = cnt
+			if len == ( moveb + 1 ) :dnt4 = cnt
+		}
+	loop
+	if dnt2 == -1 :dnt2 = noteinfo(0)
+	if dnt4 == -1 :dnt4 = noteinfo(0)
+
+	if movea < moveb {
+		repeat dnt2 - dnt1
+			noteget s, dnt1 + cnt
+			noteadd s, dnt4 + cnt
+		loop
+		repeat dnt2 - dnt1
+			notedel dnt2 - cnt - 1
+		loop
+
+		gsel 5
+		pos 0, 0
+		gcopy 1, 32 * movea, 0, 32, 32
+		gsel 1
+		pos 32 * movea, 0
+		gcopy 1, 32 * ( movea + 1 ), 0, 32 * ( moveb - movea ), 32
+		pos 32 * moveb, 0
+		gcopy 5, 0, 0, 32, 32
+	} else {
+		suffix = dnt2 - dnt1
+		repeat suffix
+			noteget s, dnt1 + ( 2 * cnt )
+			noteadd s, dnt3 + cnt
+		loop
+		repeat suffix
+			notedel dnt2 + suffix - cnt - 1
+		loop
+
+		gsel 5
+		pos 0, 0
+		gcopy 1, 32 * movea, 0, 32, 32
+		gsel 1
+		pos 32 * ( moveb + 1 ), 0
+		gcopy 1, 32 * moveb, 0, 32 * ( movea - moveb ), 32
+		pos 32 * moveb, 0
+		gcopy 5, 0, 0, 32, 32
+	}
+
+	chdir curdir
+	notesave "data\\" + curdat
+	gsel 1
+	bmpsave "data\\" + getpath( curdat, 1 ) + ".bmp"
+
+	gsel 0
 
 	return
 
