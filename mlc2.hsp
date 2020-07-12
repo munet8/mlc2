@@ -30,6 +30,7 @@
 #func GetModuleFileNameA "GetModuleFileNameA" int, int, int
 
 #include "mod_fontdlg.as"
+#include "hspext.as"
 
 ; 関数の定義
 #module
@@ -205,7 +206,11 @@ dim SHFILEINFO, 88
 	; アイテムをクリックして格納したなら、それを実行する
 	if clickitem == 1 {
 		if itemType(i) == "exe" {
-			if isAbsolutePath(itemPath(i)) :chdir getpathEx(itemPath(i))
+			if strlen(itemWorkDir(i)) > 0 {
+				chdir itemWorkDir(i)
+			} else {
+				if isAbsolutePath(itemPath(i)) :chdir getpathEx(itemPath(i))
+			}
 			exec itemPath(i)
 		} else : if itemType(i) == "file" {
 			exec itemPath(i), 16
@@ -410,6 +415,11 @@ dim SHFILEINFO, 88
 			argType = getTypeKey( "fold" )
 		} else {
 			argType = isNotExecutable( ondfname )
+			if argType == 0 {
+				argWdir = getpathEx( ondfname )
+			} else {
+				argWdir = ""
+			}
 		}
 		editIconIndex = 0
 		gosub *itemedit
@@ -425,6 +435,7 @@ dim SHFILEINFO, 88
 				argPath = itemPath(i)
 				argIcon = itemIcon(i)
 				argType = getTypeKey(itemType(i))
+				argWdir = itemWorkDir(i)
 				editIconIndex = itemIconIndex(i)
 				gosub *itemedit
 				reloaddat = 1
@@ -460,6 +471,7 @@ dim SHFILEINFO, 88
 						argPath = ""
 						argIcon = "C:\\Windows\\System32\\shell32.dll"
 						argType = 1
+						argWdir = ""
 						editIconIndex = 0
 						gosub *itemedit
 						reloaddat = 1
@@ -493,7 +505,6 @@ dim SHFILEINFO, 88
 
 	sdim fname, 260
 	repeat 1
-	;repeat ndrop
 		DragQueryFile hdrop, cnt, varptr(fname), 260
 	loop
 
@@ -544,6 +555,7 @@ dim SHFILEINFO, 88
 	sdim itemPath, 1024, itemLen
 	sdim itemIcon, 1024, itemLen
 	sdim itemType, 8, itemLen
+	sdim itemWorkDir, 1024, itemLen
 	dim  itemIconIndex, itemLen
 
 	; アイコン以外を読み込む
@@ -556,6 +568,7 @@ dim SHFILEINFO, 88
 		if t == "path=" :itemPath(len) = strmid(s, 5, 1024)
 		if t == "icon=" :itemIcon(len) = strmid(s, 5, 1024)
 		if t == "type=" :itemType(len) = strmid(s, 5, 8)
+		if t == "wdir=" :itemWorkDir(len) = strmid(s, 5, 1024)
 		if t == "indx=" :itemIconIndex(len) = int(strmid(s, 5, 16))
 	loop
 
@@ -619,6 +632,7 @@ dim SHFILEINFO, 88
 		noteadd "icon=" + editIcon, -1, 0
 		noteadd "type=" + getTypeValue(editType), -1, 0
 		noteadd "indx=" + editIconIndex, -1, 0
+		noteadd "wdir=" + editWorkDir, -1, 0
 	} else : if editMode == 1 {
 		; 削除
 		len = -1
@@ -647,6 +661,7 @@ dim SHFILEINFO, 88
 				if t == "icon=" {noteadd "icon=" + editIcon, cnt, 1              : writeflag +=  4 }
 				if t == "type=" {noteadd "type=" + getTypeValue(editType), cnt, 1: writeflag +=  8 }
 				if t == "indx=" {noteadd "indx=" + editIconIndex, cnt, 1         : writeflag += 16 }
+				if t == "wdir=" {noteadd "wdir=" + editWorkDir, cnt, 1           : writeflag += 32 }
 				dnt = cnt + 1
 			}
 		loop
@@ -655,6 +670,7 @@ dim SHFILEINFO, 88
 		if (writeflag&4)  == 0 :noteadd "icon=" + editIcon, dnt, 0
 		if (writeflag&8)  == 0 :noteadd "type=" + getTypeValue(editType), dnt, 0
 		if (writeflag&16) == 0 :noteadd "indx=" + editIconIndex, dnt, 0
+		if (writeflag&32) == 0 :noteadd "wdir=" + editWorkDir, dnt, 0
 	}
 
 	chdir curdir
@@ -671,7 +687,7 @@ dim SHFILEINFO, 88
 	if ( argIndex == -1 ) {
 		; 新規
 		pos 32 * itemLen, 0
-		gcopy 3, 76, 112, 32, 32
+		gcopy 3, 76, 136, 32, 32
 	} else : if editMode == 1 {
 		; 削除
 		setColor iniBGColor
@@ -685,7 +701,7 @@ dim SHFILEINFO, 88
 		setColor iniBGColor
 		boxf 32 * argIndex, 0, 32 * ( argIndex + 1 ), 32
 		pos 32 * argIndex, 0
-		gcopy 3, 76, 112, 32, 32
+		gcopy 3, 76, 136, 32, 32
 	}
 	bmpsave "data\\" + getpath( curdat, 1 ) + ".bmp"
 	gsel 3

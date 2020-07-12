@@ -21,6 +21,7 @@
 	editName = ""
 	input editName, 248, 16, 32
 	idEditName = stat
+
 	pos 16, 40
 	font iniFont, 16
 	mes "場所"
@@ -33,6 +34,7 @@
 	objsize 32, 20
 	button gosub "参照", *callLocation
 	idButtonEditPath = stat
+
 	pos 16, 64
 	font iniFont, 16
 	mes "Icon"
@@ -45,10 +47,24 @@
 	pos 272, 62
 	objsize 32, 20
 	button gosub "参照", *callIconLocation
+
 	pos 16, 88
 	font iniFont, 16
+	mes "作業場所"
+	pos 88, 88
+	font iniFont, 12
+	editWorkDir = ""
+	input editWorkDir, 176, 16, 1024
+	idEditWorkDir = stat
+	pos 272, 86
+	objsize 32, 20
+	button gosub "参照", *callWorkDir
+	idButtonEditWorkDir = stat
+
+	pos 16, 112
+	font iniFont, 16
 	mes "種別"
-	pos 56, 86
+	pos 56, 110
 	font iniFont, 12
 	editType = 0
 	objsize 120, 20
@@ -57,21 +73,21 @@
 
 	editIconIndex = 0
 	editIconIndexMax = 1
-	pos 56, 118
+	pos 56, 142
 	font iniFont, 12
 	objsize 16, 20
 	button gosub "<", *decreaseIconIndex
-	pos 112, 118
+	pos 112, 142
 	font iniFont, 12
 	objsize 16, 20
 	button gosub ">", *increaseIconIndex
 
-	pos 136, 112
+	pos 136, 136
 	objsize 64, 32
 	font iniFont, 16
 	button gosub "登録", *registItem
 
-	pos 208, 112
+	pos 208, 136
 	objsize 64, 32
 	font iniFont, 16
 	button gosub "削除", *deleteItem
@@ -90,6 +106,7 @@
 	objprm idEditPath, argPath
 	objprm idEditIcon, argIcon
 	objprm idEditType, argType
+	objprm idEditWorkDir, argWdir
 
 	if argIcon != "" {
 		gosub *repaintIcon
@@ -114,6 +131,14 @@
 			objenable idEditPath, 1
 			objenable idButtonEditPath, 1
 		}
+		if getTypeValue(editType) == "exe" {
+			objenable idEditWorkDir, 1
+			objenable idButtonEditWorkDir, 1
+		} else {
+			objenable idEditWorkDir, 0
+			objenable idButtonEditWorkDir, 0
+		}
+
 		wait 5
 	loop
 	oncstat = 0
@@ -130,8 +155,17 @@
 		objprm idEditPath, s
 		objprm idEditType, isNotExecutable( s )
 
-		dialog "今設定したファイルを\nアイコンにも反映しますか？", 2
-		if stat == 6 :gosub *callIconLocationInner
+		if getTypeValue(editType) == "exe" {
+			dialog "今設定したファイルを\nアイコンと作業場所にも\n反映しますか？", 2
+			if stat == 6 {
+				gosub *callIconLocationInner
+				s = getpathEx(s)
+				gosub *callWorkDirInner
+			}
+		} else {
+			dialog "今設定したファイルを\nアイコンにも反映しますか？", 2
+			if stat == 6 :gosub *callIconLocationInner
+		}
 	}
 	return
 
@@ -149,6 +183,15 @@
 	gosub *repaintIcon
 	return
 
+*callWorkDir
+	selfolder s, ""
+	if stat == 0 :gosub *callWorkDirInner
+	return
+
+*callWorkDirInner
+	objprm idEditWorkDir, s
+	return
+
 *repaintIcon
 	editIconIndexMax = getIconIndexMax( argIcon )
 	gosub *repaintIconInner
@@ -156,8 +199,8 @@
 
 *repaintIconInner
 	setColor iniBGColor
-	boxf 76, 112, 108, 144
-	drawIcon2Hdc argIcon, 76, 112, editIconIndex
+	boxf 76, 136, 108, 168
+	drawIcon2Hdc argIcon, 76, 136, editIconIndex
 	redraw 1
 	return
 
