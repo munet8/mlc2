@@ -427,7 +427,19 @@ dim SHFILEINFO, 88
 	} else : if ( i >= 0 ) {
 		stick ev, 0, 1
 		if ev & 256 {
-			if i < itemLen :onestat = i
+			if i < itemLen {
+				onestat = i
+			} else {
+				argIndex = -1 ; V‹KBD&DŠÖŒW‚È‚¢
+				argName = ""
+				argPath = ""
+				argIcon = "C:\\Windows\\System32\\shell32.dll"
+				argType = 1
+				argWdir = ""
+				editIconIndex = 0
+				gosub *itemedit
+				reloaddat = 1
+			}
 		} else : if ev & 512 {
 			if i < itemLen {
 				argIndex = i ; •ÒW
@@ -465,16 +477,6 @@ dim SHFILEINFO, 88
 						} else {
 							clickitem = 1
 						}
-					} else {
-						argIndex = -1 ; V‹K
-						argName = ""
-						argPath = ""
-						argIcon = "C:\\Windows\\System32\\shell32.dll"
-						argType = 1
-						argWdir = ""
-						editIconIndex = 0
-						gosub *itemedit
-						reloaddat = 1
 					}
 				}
 			}
