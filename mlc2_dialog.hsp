@@ -149,22 +149,31 @@
 	return
 
 *callLocation
-	dialog "", 16
-	if stat == 1 {
-		s = refstr
-		objprm idEditPath, s
-		objprm idEditType, isNotExecutable( s )
-
-		if getTypeValue(editType) == "exe" {
+	if getTypeValue(editType) == "fold" {
+		selfolder s, ""
+		if stat == 0 {
+			objprm idEditPath, s
 			dialog "今設定したファイルを\nアイコンと作業場所にも\n反映しますか？", 2
-			if stat == 6 {
-				gosub *callIconLocationInner
-				s = getpathEx(s)
-				gosub *callWorkDirInner
-			}
-		} else {
-			dialog "今設定したファイルを\nアイコンにも反映しますか？", 2
 			if stat == 6 :gosub *callIconLocationInner
+		}
+	} else {
+		dialog "", 16
+		if stat == 1 {
+			s = refstr
+			objprm idEditPath, s
+			objprm idEditType, isNotExecutable( s )
+	
+			if getTypeValue(editType) == "exe" {
+				dialog "今設定したファイルを\nアイコンと作業場所にも\n反映しますか？", 2
+				if stat == 6 {
+					gosub *callIconLocationInner
+					s = getpathEx(s)
+					gosub *callWorkDirInner
+				}
+			} else {
+				dialog "今設定したファイルを\nアイコンにも反映しますか？", 2
+				if stat == 6 :gosub *callIconLocationInner
+			}
 		}
 	}
 	return
