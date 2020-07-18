@@ -75,7 +75,8 @@
 	if i2 == 0 {
 		t = strmid(t, 0, i3)
 	} else : if i1 > 0 {
-		t = strmid(t, 0, i1-1)
+		exist t
+		if strsize == -1 :t = strmid(t, 0, i1 - 1)
 	}
 	t = getpath(t, 32)
 	return t
