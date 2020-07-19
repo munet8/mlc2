@@ -10,6 +10,7 @@
 ; 管理者権限の獲得 http://hsptv.sakura.ne.jp/play/pforum.php?mode=pastwch&num=72960#73405
 ; タスクトレイへの格納 http://hsp.tv/play/pforum.php?mode=pastwch&num=1594#1760
 ; 領域外のマウスイベント取得 http://hsp.tv/play/pforum.php?mode=pastwch&num=76709#76718
+; 簡易的な多重起動の防止 http://chokuto.ifdef.jp/advanced/singleton1.html
 
 ; API読み込み
 #uselib "gdi32" 
@@ -137,11 +138,54 @@ dim SHFILEINFO, 88
 	return i
 #global
 
+#module
+#uselib "kernel32.dll"
+#func  CloseHandle  "CloseHandle"  int
+#cfunc CreateMutex  "CreateMutexA" int, int, sptr
+#cfunc GetLastError "GetLastError"
+#define ERROR_ALREADY_EXISTS    183
+
+#define MUTEX_NAME  "Mulancha_2"
+
+; このアプリケーションがすでに起動されているかどうかを取得する関数
+#defcfunc AlreadyAppRunning
+
+if (hMutex == 0) {
+    ; 名前付きミューテックスオブジェクトの作成
+    hMutex = CreateMutex(0, 0, MUTEX_NAME)
+
+    ; オブジェクトがすでに作成されていたかどうかの判別
+    if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        ; すでに同じ名前のオブジェクトが存在する
+        alreadyRunning = 1
+    } else {
+        ; オブジェクトが新しく作成された
+        alreadyRunning = 0
+    }
+}
+return alreadyRunning
+
+; クリーンアップ処理（終了時に自動実行）
+#deffunc CleanupAppRunChecker onexit
+if (hMutex != 0) {
+    ; ミューテックスオブジェクトハンドルのクローズ
+    CloseHandle hMutex
+    hMutex = 0
+}
+return
+#global
+
 ;-------------------------------------------------------------------------------
 ;          ;
            ; 初期化処理
 ;          ;
 ;-------------------------------------------------------------------------------
+
+	; アプリケーションの実行チェック
+	if (AlreadyAppRunning()) {
+		dialog "Mulancha はすでに起動されています。"
+		end
+	}
 
 	notesel nt
 	version = "2β2"
