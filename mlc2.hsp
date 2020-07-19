@@ -144,6 +144,7 @@ dim SHFILEINFO, 88
 ;-------------------------------------------------------------------------------
 
 	notesel nt
+	version = "2β2"
 
 	; どのウィンドウであれ、閉じるボタンが押された時を検出
 	onexit gosub *onclose
@@ -414,6 +415,7 @@ dim SHFILEINFO, 88
 		dirlist temp, ondfname, 5
 		if ( stat == 1 ) {
 			argType = getTypeKey( "fold" )
+			argWdir = ""
 		} else {
 			argType = isNotExecutable( ondfname )
 			if argType == 0 {

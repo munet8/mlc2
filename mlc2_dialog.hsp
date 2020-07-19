@@ -374,7 +374,16 @@
 	font iniFont, 12
 	objsize 48, 20
 	button gosub "•Â‚¶‚é", *closesetting
-	
+
+	pos 16, 216
+	font iniFont, 16
+	mes "Mulancha " + version + " by "
+
+	pos 8 * strlen( version ) + 120, 214
+	font iniFont, 12
+	objsize 48, 20
+	button gosub "m-ushi", *gotomunet
+
 	return
 
 *settingedit
@@ -474,4 +483,8 @@
 	oncstat = 1
 	chdir curdir
 	notesave "mlc2.ini"
+	return
+
+*gotomunet
+	exec "https://munet.x0.to/", 16
 	return
