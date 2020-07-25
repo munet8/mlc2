@@ -151,26 +151,26 @@ dim SHFILEINFO, 88
 #defcfunc AlreadyAppRunning
 
 if (hMutex == 0) {
-    ; 名前付きミューテックスオブジェクトの作成
-    hMutex = CreateMutex(0, 0, MUTEX_NAME)
+	; 名前付きミューテックスオブジェクトの作成
+	hMutex = CreateMutex(0, 0, MUTEX_NAME)
 
-    ; オブジェクトがすでに作成されていたかどうかの判別
-    if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        ; すでに同じ名前のオブジェクトが存在する
-        alreadyRunning = 1
-    } else {
-        ; オブジェクトが新しく作成された
-        alreadyRunning = 0
-    }
+	; オブジェクトがすでに作成されていたかどうかの判別
+	if (GetLastError() == ERROR_ALREADY_EXISTS) {
+		; すでに同じ名前のオブジェクトが存在する
+		alreadyRunning = 1
+	} else {
+		; オブジェクトが新しく作成された
+		alreadyRunning = 0
+	}
 }
 return alreadyRunning
 
 ; クリーンアップ処理（終了時に自動実行）
 #deffunc CleanupAppRunChecker onexit
 if (hMutex != 0) {
-    ; ミューテックスオブジェクトハンドルのクローズ
-    CloseHandle hMutex
-    hMutex = 0
+	; ミューテックスオブジェクトハンドルのクローズ
+	CloseHandle hMutex
+	hMutex = 0
 }
 return
 #global
