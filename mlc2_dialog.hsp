@@ -270,7 +270,7 @@
 	if stat == 7 :return
 	editMode = 1
 	gosub *writedat
-	if itemType(i) == "dir" {
+	if ( itemType(i) == "dir" )&(itemPath( i ) != "root.dat" ) {
 		dialog "サブメニューのファイル自体を削除しますか？\n残しておくと、再度参照できます。", 3
 		if stat == 6 {
 			chdir curdir + "\\data"
