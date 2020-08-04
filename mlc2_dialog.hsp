@@ -37,39 +37,39 @@
 
 	pos 16, 64
 	font iniFont, 16
-	mes "Icon"
-	pos 56, 64
-	font iniFont, 12
-	editIcon = ""
-	input editIcon, 208, 16, 1024
-	idEditIcon = stat
-	sendmsg objinfo(idEditIcon, 2), $CF, 1 ; 編集不可
-	pos 272, 62
-	objsize 32, 20
-	button gosub "参照", *callIconLocation
-
-	pos 16, 88
-	font iniFont, 16
 	mes "作業場所"
-	pos 88, 88
+	pos 88, 64
 	font iniFont, 12
 	editWorkDir = ""
 	input editWorkDir, 176, 16, 1024
 	idEditWorkDir = stat
-	pos 272, 86
+	pos 272, 62
 	objsize 32, 20
 	button gosub "参照", *callWorkDir
 	idButtonEditWorkDir = stat
 
-	pos 16, 112
+	pos 16, 88
 	font iniFont, 16
 	mes "種別"
-	pos 56, 110
+	pos 56, 86
 	font iniFont, 12
 	editType = 0
 	objsize 120, 20
 	combox editType, 40, "実行形式\nファイル\nフォルダー\nサブメニュー\n管理者権限"
 	idEditType = stat
+
+	pos 16, 112
+	font iniFont, 16
+	mes "Icon"
+	pos 56, 112
+	font iniFont, 12
+	editIcon = ""
+	input editIcon, 208, 16, 1024
+	idEditIcon = stat
+	sendmsg objinfo(idEditIcon, 2), $CF, 1 ; 編集不可
+	pos 272, 110
+	objsize 32, 20
+	button gosub "参照", *callIconLocation
 
 	editIconIndex = 0
 	editIconIndexMax = 1
@@ -82,15 +82,21 @@
 	objsize 16, 20
 	button gosub ">", *increaseIconIndex
 
-	pos 136, 136
+	pos 56, 176
 	objsize 64, 32
 	font iniFont, 16
 	button gosub "登録", *registItem
 
-	pos 208, 136
+	pos 128, 176
 	objsize 64, 32
 	font iniFont, 16
 	button gosub "削除", *deleteItem
+	idDeleteItem = stat
+
+	pos 200, 176
+	objsize 96, 32
+	font iniFont, 16
+	button gosub "キャンセル", *cancelEditingItem
 	idDeleteItem = stat
 
 	return
@@ -270,7 +276,7 @@
 	if stat == 7 :return
 	editMode = 1
 	gosub *writedat
-	if ( itemType(i) == "dir" )&(itemPath( i ) != "root.dat" ) {
+	if ( itemType(i) == "dir" )&( itemPath( i ) != "root.dat" ) { ; 該当サブメニューがルートでなければ削除可能
 		dialog "サブメニューのファイル自体を削除しますか？\n残しておくと、再度参照できます。", 3
 		if stat == 6 {
 			chdir curdir + "\\data"
@@ -280,6 +286,10 @@
 		}
 	}
 	gosub *getdat
+	oncstat = 1
+	return
+
+*cancelEditingItem
 	oncstat = 1
 	return
 
