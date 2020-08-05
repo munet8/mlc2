@@ -188,7 +188,7 @@ return
 	}
 
 	notesel nt
-	version = "2β2"
+	version = "2β3"
 
 	; どのウィンドウであれ、閉じるボタンが押された時を検出
 	onexit gosub *onclose
