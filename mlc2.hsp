@@ -745,7 +745,7 @@ return
 	notesave "data\\" + curdat
 
 	; 新規サブメニューの場合
-	if ( argIndex == -1 )&( getTypeValue(editType) == "dir" )&( notMakeSubItem == 0 ) {
+	if ( argIndex == -1 )&( copymode == 0 )&( getTypeValue(editType) == "dir" )&( notMakeSubItem == 0 ) {
 		s = "parent=" + curdat
 		bsave "data\\" + editPath, s, strlen(s)
 	}
