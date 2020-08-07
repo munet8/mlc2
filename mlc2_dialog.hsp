@@ -83,21 +83,26 @@
 	button gosub ">", *increaseIconIndex
 
 	pos 56, 176
-	objsize 64, 32
+	objsize 48, 32
 	font iniFont, 16
 	button gosub "登録", *registItem
 
-	pos 128, 176
-	objsize 64, 32
+	pos 112, 176
+	objsize 48, 32
 	font iniFont, 16
 	button gosub "削除", *deleteItem
 	idDeleteItem = stat
 
-	pos 200, 176
-	objsize 96, 32
+	pos 168, 176
+	objsize 48, 32
 	font iniFont, 16
-	button gosub "キャンセル", *cancelEditingItem
-	idDeleteItem = stat
+	button gosub "複写", *copyingItem
+	idCopyItem = stat
+
+	pos 224, 176
+	objsize 56, 32
+	font iniFont, 16
+	button gosub "ｷｬﾝｾﾙ", *cancelEditingItem
 
 	return
 
@@ -120,8 +125,10 @@
 
 	if (argIndex == -1) {
 		objenable idDeleteItem, 0
+		objenable idCopyItem, 0
 	} else {
 		objenable idDeleteItem, 1
+		objenable idCopyItem, 1
 	}
 	editMode = 0
 
@@ -286,6 +293,26 @@
 		}
 	}
 	gosub *getdat
+	oncstat = 1
+	return
+
+*copyingItem
+	dialog "複写したいサブメニューに移動して、\n空白のアイテムをクリック(新規アイテムを作成)してください。"
+
+	copymode = 1
+	copyName = editName
+	copyPath = editPath
+	copyIcon = editIcon
+	copyType = editType
+	copyIconIndex = editIconIndex
+	copyWorkDir = editWorkDir
+
+	buffer 6, 32, 32, 0
+	gsel 6
+	pos 0, 0
+	gcopy 3, 76, 136, 32, 32
+	gsel 3
+
 	oncstat = 1
 	return
 

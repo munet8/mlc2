@@ -188,7 +188,7 @@ return
 	}
 
 	notesel nt
-	version = "2β3"
+	version = "2β4"
 
 	; どのウィンドウであれ、閉じるボタンが押された時を検出
 	onexit gosub *onclose
@@ -204,6 +204,9 @@ return
 	curdir = dir_cur
 
 	clickitem = 0
+
+	; 複写領域
+	copymode = 0
 
 	; ini読み込み
 	sdim iniFiler, 1024
@@ -477,15 +480,33 @@ return
 			if i < itemLen {
 				onestat = i
 			} else {
-				argIndex = -1 ; 新規。D&D関係ない
-				argName = ""
-				argPath = ""
-				argIcon = "C:\\Windows\\System32\\shell32.dll"
-				argType = 1
-				argWdir = ""
-				editIconIndex = 0
-				gosub *itemedit
-				reloaddat = 1
+				; 新規。D&D関係ない
+				if copymode == 1 {
+					; 複写
+					argIndex = -1
+					editName = copyName
+					editPath = copyPath
+					editIcon = copyIcon
+					editType = copyType
+					editIconIndex = copyIconIndex
+					editWorkDir = copyWorkDir
+					gosub *writedat
+
+					copymode = 0
+					reloaddat = 1
+					reloaddatbutnotmove = 1
+				} else {
+					; 新規アイテム作成
+					argIndex = -1
+					argName = ""
+					argPath = ""
+					argIcon = "C:\\Windows\\System32\\shell32.dll"
+					argType = 1
+					argWdir = ""
+					editIconIndex = 0
+					gosub *itemedit
+					reloaddat = 1
+				}
 			}
 		} else : if ev & 512 {
 			if i < itemLen {
@@ -733,10 +754,16 @@ return
 
 	; 中間bmpの作成
 	gsel 1
-	if ( argIndex == -1 ) {
-		; 新規
-		pos 32 * itemLen, 0
-		gcopy 3, 76, 136, 32, 32
+	if argIndex == -1 {
+		if copymode == 1 {
+			; 複写
+			pos 32 * itemLen, 0
+			gcopy 6, 0, 0, 32, 32
+		} else {
+			; 新規
+			pos 32 * itemLen, 0
+			gcopy 3, 76, 136, 32, 32
+		}
 	} else : if editMode == 1 {
 		; 削除
 		setColor iniBGColor
@@ -753,7 +780,11 @@ return
 		gcopy 3, 76, 136, 32, 32
 	}
 	bmpsave "data\\" + getpath( curdat, 1 ) + ".bmp"
-	gsel 3
+	if ( argIndex == -1 )&( copymode == 1 ) {
+		gsel 0
+	} else {
+		gsel 3
+	}
 
 	return
 
