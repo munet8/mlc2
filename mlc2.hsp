@@ -1,5 +1,6 @@
 ;#makeopt icon_rsrc "mlc2.ico"
 #packopt name "mlc2.exe"
+#packopt hide 1
 
 ; ref)
 ; アイコンの取り出し http://lhsp.s206.xrea.com/hsp_file.html (.lnkが表示可能)
