@@ -459,7 +459,11 @@
 	loop
 	oncstat = 0
 
-	noteadd "splash=" + settingSplash, 7, 1
+	if notemax < 8 {
+		noteadd "splash=" + settingSplash, -1, 0
+	} else {
+		noteadd "splash=" + settingSplash, 7, 1
+	}
 
 	chdir curdir
 	notesave "mlc2.ini"
