@@ -242,12 +242,13 @@ return
 	iniSplash = int(strmid(s, 7, 1))
 
 	if iniSplash == 1 {
-		bgscr 2, 256, 128, 2, ( ginfo_dispx - 128 ) / 2 , ( ginfo_dispy - 64 ) / 2
+		bgscr 2, 320, 160, 2, ( ginfo_dispx - 320 ) / 2 , ( ginfo_dispy - 80 ) / 2
 		cls 0
-		pos 128, 0
+		pos 176, 16
 		picload "mlc2.png", 1
+		color 0, 0, 0
 		font iniFont, 32
-		pos 16, 80 :mes "Mulancha " + version
+		pos 16, 112 :mes "Mulancha " + version
 		gsel 2, 2
 		repeat 100
 			wait 1
