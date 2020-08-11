@@ -407,7 +407,19 @@
 	objsize 32, 20
 	button gosub "変更", *setfiler
 
-	pos 88, 136
+	pos 16, 136
+	font iniFont, 16
+	setColor iniFGColor
+	mes "起動時にタイトルを"
+
+	pos 168, 134
+	font iniFont, 12
+	objsize 96, 20
+	combox settingSplash, 40, "表示しない\n表示する"
+	idSettingSplash = stat
+	objprm idSettingSplash, iniSplash
+
+	pos 88, 160
 	font iniFont, 16
 	objsize 80, 32
 	button gosub "閉じる", *closesetting
@@ -446,6 +458,8 @@
 		wait 5
 	loop
 	oncstat = 0
+
+	noteadd "splash=" + settingSplash, 7, 1
 
 	chdir curdir
 	notesave "mlc2.ini"

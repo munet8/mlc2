@@ -13,6 +13,15 @@
 ; 領域外のマウスイベント取得 http://hsp.tv/play/pforum.php?mode=pastwch&num=76709#76718
 ; 簡易的な多重起動の防止 http://chokuto.ifdef.jp/advanced/singleton1.html
 
+; スクリーンID
+; 0 : メイン画面
+; 1 : メイン画面におけるアイコン画像バッファ
+; 2 : スプラッシュウィンドウ
+; 3 : アイテム編集画面
+; 4 : 設定画面
+; 5 : アイテム編集におけるアイコン画像バッファ
+; 6 : アイテム複写におけるアイコン画像バッファ
+
 ; API読み込み
 #uselib "gdi32" 
 #cfunc CreateEllipticRgn "CreateEllipticRgn" int, int, int, int
@@ -229,9 +238,30 @@ return
 	iniFGColor = int("$" + strmid(s, 9, 6))
 	noteget s, 6
 	iniBGColor = int("$" + strmid(s, 9, 6))
+	noteget s, 7
+	iniSplash = int(strmid(s, 7, 1))
+
+	if iniSplash == 1 {
+		bgscr 2, 256, 128, 2, ( ginfo_dispx - 128 ) / 2 , ( ginfo_dispy - 64 ) / 2
+		cls 0
+		pos 128, 0
+		picload "mlc2.png", 1
+		font iniFont, 32
+		pos 16, 80 :mes "Mulancha " + version
+		gsel 2, 2
+		repeat 100
+			wait 1
+			stick ev
+			if ev != 0 :break
+		loop
+	}
 
 	gosub *createEditDialog
 	gosub *createSettingDialog
+
+	if iniSplash == 1 {
+		gsel 2, -1
+	}
 
 ;-------------------------------------------------------------------------------
 ;              ;
