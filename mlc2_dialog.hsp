@@ -180,7 +180,7 @@
 				dialog "今設定したファイルを\nアイコンと作業場所にも\n反映しますか？", 2
 				if stat == 6 {
 					gosub *callIconLocationInner
-					s = getpathEx(s)
+					s = getpathEx(s, 0)
 					gosub *callWorkDirInner
 				}
 			} else {

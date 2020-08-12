@@ -78,18 +78,23 @@
 	if strmid(t, 1, 2) == ":\\"  :i = 1
 	if strmid(t, 0, 1) == "\\"   :i = 1
 	return i
-#defcfunc getpathEx str s
+#defcfunc getpathEx str s, int f
 	t = s
 	i1 = instr(t, 0, " ")
 	i2 = instr(t, 0, "\"")
-	i3 = instr(t, i2, "\"")
+	i3 = instr(t, i2 + 1, "\"")
 	if i2 == 0 {
-		t = strmid(t, 0, i3)
+		t = strmid(t, 1, i3)
 	} else : if i1 > 0 {
 		exist t
-		if strsize == -1 :t = strmid(t, 0, i1 - 1)
+		if strsize == -1 {
+			t = strmid(t, 0, i1)
+		}
 	}
-	t = getpath(t, 32)
+	if f == 0 {
+		; フォルダを返す
+		t = getpath(t, 32)
+	}
 	return t
 #defcfunc getTypeKey str s
 	i = 0
@@ -198,7 +203,7 @@ return
 	}
 
 	notesel nt
-	version = "2β4"
+	version = "2 RC1"
 
 	; どのウィンドウであれ、閉じるボタンが押された時を検出
 	onexit gosub *onclose
@@ -287,16 +292,17 @@ return
 	; アイテムをクリックして格納したなら、それを実行する
 	if clickitem == 1 {
 		isExist = 1
-		if isAbsolutePath( itemPath(i) ) {
+		s = getpathEx( itemPath(i), 1 )
+		if isAbsolutePath( s ) {
 			; 存在チェック
 			if itemType(i) == "fold" {
-				chdir getpath( itemPath(i), 32 )
-				if strlen( getpath( itemPath(i), 9 )) > 0  {
-					dirlist temp, getpath( itemPath(i), 9 ), 5
+				chdir getpath( s, 32 )
+				if strlen( getpath( s, 9 )) > 0  {
+					dirlist temp, getpath( s, 9 ), 5
 					if stat == 0 :isExist = 0
 				}
 			} else {
-				exist itemPath(i)
+				exist s
 				if strsize == -1 :isExist = 0
 			}
 		}
@@ -308,7 +314,7 @@ return
 				if strlen(itemWorkDir(i)) > 0 {
 					chdir itemWorkDir(i)
 				} else {
-					if isAbsolutePath(itemPath(i)) :chdir getpathEx(itemPath(i))
+					if isAbsolutePath(itemPath(i)) :chdir getpathEx(itemPath(i), 0)
 				}
 				exec itemPath(i)
 			} else : if itemType(i) == "file" {
@@ -320,7 +326,7 @@ return
 					exec iniFiler + " " + itemPath(i)
 				}
 			} else : if itemType(i) == "uac" {
-				if isAbsolutePath(itemPath(i)) :chdir getpathEx(itemPath(i))
+				if isAbsolutePath(itemPath(i)) :chdir getpathEx(itemPath(i), 0)
 				str_executefile = itemPath(i)
 				str_performmode = "runas"
 
@@ -517,7 +523,7 @@ return
 		} else {
 			argType = isNotExecutable( ondfname )
 			if argType == 0 {
-				argWdir = getpathEx( ondfname )
+				argWdir = getpathEx( ondfname, 0 )
 			} else {
 				argWdir = ""
 			}
