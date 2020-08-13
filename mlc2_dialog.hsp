@@ -464,6 +464,7 @@
 	} else {
 		noteadd "splash=" + settingSplash, 7, 1
 	}
+	iniSplash = settingSplash
 
 	chdir curdir
 	notesave "mlc2.ini"
