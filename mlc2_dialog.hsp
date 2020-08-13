@@ -424,11 +424,11 @@
 	objsize 80, 32
 	button gosub "•Â‚¶‚é", *closesetting
 
-	pos 16, 216
+	pos 152 - ( 8 * strlen( version )), 216
 	font iniFont, 16
 	mes "Mulancha " + version + " by "
 
-	pos 8 * strlen( version ) + 120, 214
+	pos 256, 214
 	font iniFont, 12
 	objsize 48, 20
 	button gosub "m-ushi", *gotomunet
