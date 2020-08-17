@@ -163,7 +163,10 @@
 
 *callLocation
 	if getTypeValue(editType) == "fold" {
+		gsel 0, 1
+		gsel 3, 1
 		selfolder s, ""
+		gsel 3, 2
 		if stat == 0 {
 			objprm idEditPath, s
 			dialog "今設定したファイルを\nアイコンと作業場所にも\n反映しますか？", 2
@@ -206,7 +209,10 @@
 	return
 
 *callWorkDir
+	gsel 0, 1
+	gsel 3, 1
 	selfolder s, ""
+	gsel 3, 2
 	if stat == 0 :gosub *callWorkDirInner
 	return
 
