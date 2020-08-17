@@ -203,7 +203,7 @@ return
 	}
 
 	notesel nt
-	version = "2 RC1"
+	version = "2 RC2"
 
 	; どのウィンドウであれ、閉じるボタンが押された時を検出
 	onexit gosub *onclose
@@ -292,7 +292,12 @@ return
 	; アイテムをクリックして格納したなら、それを実行する
 	if clickitem == 1 {
 		isExist = 1
-		s = getpathEx( itemPath(i), 1 )
+		if itemType(i) == "fold" {
+			s = itemPath(i)
+		} else {
+			s = getpathEx( itemPath(i), 1 )
+		}
+
 		if isAbsolutePath( s ) {
 			; 存在チェック
 			if itemType(i) == "fold" {
