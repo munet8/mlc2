@@ -293,7 +293,7 @@ return
 	if clickitem == 1 {
 		isExist = 1
 		if itemType(i) == "fold" {
-			s = itemPath(i)
+			s = itemPath(i) ; フォルダの場合のみ半角空白を許容
 		} else {
 			s = getpathEx( itemPath(i), 1 )
 		}
