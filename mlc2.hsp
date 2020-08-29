@@ -203,7 +203,7 @@ return
 	}
 
 	notesel nt
-	version = "2 RC2"
+	version = "2 RC3"
 
 	; どのウィンドウであれ、閉じるボタンが押された時を検出
 	onexit gosub *onclose
@@ -597,7 +597,7 @@ return
 							argIndex = -1
 							argName = ""
 							argPath = ""
-							argIcon = "C:\\Windows\\System32\\shell32.dll"
+							argIcon = dir_win + "\\System32\\shell32.dll"
 							argType = 1
 							argWdir = ""
 							editIconIndex = 0
