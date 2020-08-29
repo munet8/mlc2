@@ -246,6 +246,43 @@ return
 	noteget s, 7
 	iniSplash = int(strmid(s, 7, 1))
 
+	; datèâä˙âª
+	exist "data\\root.dat"
+	if strsize == -1 {
+		s = ""
+		bsave "data\\root.dat", s
+		noteload "data\\root.dat"
+		noteadd "parent="                          , -1, 0
+		noteadd "[item]"                           , -1, 0
+		noteadd "name=Internet Explorer"           , -1, 0
+		s = "C:\\Program Files"
+		chdir dir_win + "\\.."
+		dirlist temp, "Program Files (x86)", 5
+		if stat != 0 :s += " (x86)"
+		s += "\\Internet Explorer\\iexplore.exe"
+		noteadd "path=" + s                        , -1, 0
+		noteadd "icon=" + s                        , -1, 0
+		noteadd "type=exe"                         , -1, 0
+		noteadd "indx=0"                           , -1, 0
+		noteadd "wdir="                            , -1, 0
+		noteadd "[item]"                           , -1, 0
+		noteadd "name=ÉÅÉÇí†"                      , -1, 0
+		noteadd "path=notepad.exe"                 , -1, 0
+		noteadd "icon=" + dir_sys + "\\notepad.exe", -1, 0
+		noteadd "type=exe"                         , -1, 0
+		noteadd "indx=0"                           , -1, 0
+		noteadd "wdir="                            , -1, 0
+		noteadd "[item]"                           , -1, 0
+		noteadd "name=ÉyÉCÉìÉg"                    , -1, 0
+		noteadd "path=mspaint.exe"                 , -1, 0
+		noteadd "icon=" + dir_sys + "\\mspaint.exe", -1, 0
+		noteadd "type=exe"                         , -1, 0
+		noteadd "indx=0"                           , -1, 0
+		noteadd "wdir="                            , -1, 0
+		chdir curdir
+		notesave "data\\root.dat"
+	}
+
 	if iniSplash == 1 {
 		bgscr 2, 320, 160, 2, ( ginfo_dispx - 320 ) / 2 , ( ginfo_dispy - 80 ) / 2
 		cls 0
@@ -597,7 +634,7 @@ return
 							argIndex = -1
 							argName = ""
 							argPath = ""
-							argIcon = dir_win + "\\System32\\shell32.dll"
+							argIcon = dir_sys + "\\shell32.dll"
 							argType = 1
 							argWdir = ""
 							editIconIndex = 0
