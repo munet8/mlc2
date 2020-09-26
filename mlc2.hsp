@@ -203,7 +203,7 @@ return
 	}
 
 	notesel nt
-	version = "2 RC3"
+	version = "2.0"
 
 	; どのウィンドウであれ、閉じるボタンが押された時を検出
 	onexit gosub *onclose
@@ -245,6 +245,10 @@ return
 	iniBGColor = int("$" + strmid(s, 9, 6))
 	noteget s, 7
 	iniSplash = int(strmid(s, 7, 1))
+
+	; dataフォルダなければ作成
+	dirlist temp, "data", 5
+	if stat == 0 :mkdir "data"
 
 	; dat初期化
 	exist "data\\root.dat"
