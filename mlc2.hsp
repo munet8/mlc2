@@ -203,7 +203,7 @@ return
 	}
 
 	notesel nt
-	version = "2.0"
+	version = "2.0.1"
 
 	; どのウィンドウであれ、閉じるボタンが押された時を検出
 	onexit gosub *onclose
@@ -536,16 +536,18 @@ return
 			mes "設定"
 		}
 	} else : if ( 0 <= i )&( i < itemLen ) {
-		setColor iniFGColor :font iniFont, 16
-		repeat 5
-			if strlen(itemDispName(i, cnt)) > 0 :dnt = cnt
-		loop
-		dnt++
-		repeat dnt
-			namelen = strlen(itemDispName(i, cnt))
-			pos 4 * ( 10 - namelen ) + 120, ( -8 * dnt ) + ( 16 * cnt ) + 160
-			mes itemDispName(i, cnt)
-		loop
+		if ( strlen(itemName(i)) > 0 ) {
+			setColor iniFGColor :font iniFont, 16
+			repeat 5
+				if strlen(itemDispName(i, cnt)) > 0 :dnt = cnt
+			loop
+			dnt++
+			repeat dnt
+				namelen = strlen(itemDispName(i, cnt))
+				pos 4 * ( 10 - namelen ) + 120, ( -8 * dnt ) + ( 16 * cnt ) + 160
+				mes itemDispName(i, cnt)
+			loop
+		}
 	} else : if ( i == itemLen ) {
 		setColor iniFGColor :font iniFont, 16 :pos 144, 152
 		mes "新規"
