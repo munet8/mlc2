@@ -11,7 +11,7 @@
 ; 管理者権限の獲得 http://hsptv.sakura.ne.jp/play/pforum.php?mode=pastwch&num=72960#73405
 ; タスクトレイへの格納 http://hsp.tv/play/pforum.php?mode=pastwch&num=1594#1760
 ; 領域外のマウスイベント取得 http://hsp.tv/play/pforum.php?mode=pastwch&num=76709#76718
-; 簡易的な多重起動の防止 http://chokuto.ifdef.jp/advanced/singleton1.html
+; 多重起動の防止 http://chokuto.ifdef.jp/advanced/singleton2.html
 
 ; スクリーンID
 ; 0 : メイン画面
@@ -26,19 +26,31 @@
 #uselib "gdi32" 
 #cfunc CreateEllipticRgn "CreateEllipticRgn" int, int, int, int
 #uselib "user32"
-#func SetWindowRgn "SetWindowRgn" int, int, int
-#func EnableWindow "EnableWindow" int, int
-#cfunc GetAsyncKeyState "GetAsyncKeyState" int
+#func SetWindowRgn        "SetWindowRgn" int, int, int
+#func EnableWindow        "EnableWindow" int, int
+#cfunc GetAsyncKeyState   "GetAsyncKeyState" int
+#func PostMessage         "PostMessageA" sptr,sptr,sptr,sptr
+#func SetForegroundWindow "SetForegroundWindow" sptr
 #uselib "shell32"
-#func ShellExecuteEx "ShellExecuteEx" sptr
-#func DragAcceptFiles "DragAcceptFiles" int,int
-#func DragQueryFile   "DragQueryFileA"  int,int,int,int
-#func DragQueryPoint  "DragQueryPoint"  int,int
-#func DragFinish      "DragFinish"      int
-#func ExtractIconEx "ExtractIconExA" int, int, int, int, int
+#func ShellExecuteEx   "ShellExecuteEx" sptr
+#func DragAcceptFiles  "DragAcceptFiles" int,int
+#func DragQueryFile    "DragQueryFileA"  int,int,int,int
+#func DragQueryPoint   "DragQueryPoint"  int,int
+#func DragFinish       "DragFinish"      int
+#func ExtractIconEx    "ExtractIconExA" int, int, int, int, int
 #func Shell_NotifyIcon "Shell_NotifyIcon" int, int
 #uselib "kernel32.dll"
-#func GetModuleFileNameA "GetModuleFileNameA" int, int, int
+#func  GetModuleFileNameA "GetModuleFileNameA" int, int, int
+#func  CloseHandle        "CloseHandle"  sptr
+#cfunc CreateFileMapping  "CreateFileMappingA" sptr,sptr,sptr,sptr,sptr,sptr
+#cfunc GetLastError       "GetLastError"
+#cfunc MapViewOfFile      "MapViewOfFile" sptr,sptr,sptr,sptr,sptr
+#func  UnmapViewOfFile    "UnmapViewOfFile" sptr
+
+#define MAP_OBJ_NAME    "Mulancha_2"
+#define SHARED_MEM_SIZE 1024
+#define MYWM_RUN_NOTIFY 0x0401
+#define NOTIFY_TRAYICON 0x1400
 
 #include "mod_fontdlg.as"
 #include "hspext.as"
@@ -153,68 +165,52 @@ dim SHFILEINFO, 88
 	return i
 #global
 
-#module
-#uselib "kernel32.dll"
-#func  CloseHandle  "CloseHandle"  int
-#cfunc CreateMutex  "CreateMutexA" int, int, sptr
-#cfunc GetLastError "GetLastError"
-#define ERROR_ALREADY_EXISTS    183
-
-#define MUTEX_NAME  "Mulancha_2"
-
-; このアプリケーションがすでに起動されているかどうかを取得する関数
-#defcfunc AlreadyAppRunning
-
-if (hMutex == 0) {
-	; 名前付きミューテックスオブジェクトの作成
-	hMutex = CreateMutex(0, 0, MUTEX_NAME)
-
-	; オブジェクトがすでに作成されていたかどうかの判別
-	if (GetLastError() == ERROR_ALREADY_EXISTS) {
-		; すでに同じ名前のオブジェクトが存在する
-		alreadyRunning = 1
-	} else {
-		; オブジェクトが新しく作成された
-		alreadyRunning = 0
-	}
-}
-return alreadyRunning
-
-; クリーンアップ処理（終了時に自動実行）
-#deffunc CleanupAppRunChecker onexit
-if (hMutex != 0) {
-	; ミューテックスオブジェクトハンドルのクローズ
-	CloseHandle hMutex
-	hMutex = 0
-}
-return
-#global
-
 ;-------------------------------------------------------------------------------
 ;          ;
            ; 初期化処理
 ;          ;
 ;-------------------------------------------------------------------------------
 
-	; アプリケーションの実行チェック
-	if (AlreadyAppRunning()) {
-		dialog "Mulancha はすでに起動されています。"
-		end
+	; ファイルマッピングオブジェクトの作成
+	hMapObj = CreateFileMapping( -1, 0, 4, 0,SHARED_MEM_SIZE, MAP_OBJ_NAME )
+	; ファイルマッピングオブジェクトが作成されていたかどうかの判別
+	if ( GetLastError() == 183 ) {
+		; すでに同じ名前のオブジェクトが存在する
+		goto *secondrunproc
+	} else {
+		; オブジェクトが新しく作成された
+		goto *firstrunproc
 	}
 
+*firstrunproc
+
 	notesel nt
-	version = "2.0.1"
+	version = "2.0.2"
 
 	; どのウィンドウであれ、閉じるボタンが押された時を検出
 	onexit gosub *onclose
+
 	oncstat = 0
 	ondstat = 0
 	onestat = 0
+	onnstat = 0
 	reloaddatbutnotmove = 0
 	sdim ondfname, 1024
 
+	; 多重起動通知の受付
+	oncmd gosub *onnotify, MYWM_RUN_NOTIFY
 	; タスクトレイのアイコンクリック
-	oncmd gosub *clicktasktray, $1400
+	oncmd gosub *clicktasktray, NOTIFY_TRAYICON
+
+	; ビューのマッピング
+	sharedMemPtr = MapViewOfFile( hMapObj, 2, 0, 0, SHARED_MEM_SIZE )
+	; ウィンドウハンドルを共有メモリに格納
+	dupptr sharedMemVal, sharedMemPtr, SHARED_MEM_SIZE
+	sharedMemVal(0) = hwnd
+	; ビューのマッピング解除
+	UnmapViewOfFile sharedMemPtr
+	sharedMemPtr = 0
+	dim sharedMemVal, 1
 
 	curdir = dir_cur
 
@@ -385,6 +381,7 @@ return
 
 	; ロッカージェスチャー入力待ち
 	MouseLock = 0
+	onnstat = 0
 	repeat
 		/*
 			https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
@@ -409,6 +406,8 @@ return
 				break
 			}
 		}
+		; 多重起動の通知があれば起動と見なす
+		if ( onnstat == 1 ) :break
 		wait 1
 	loop
 
@@ -458,6 +457,7 @@ return
 	clickitem = 0
 
 	onestat = -2
+	onnstat = 0
 
 	repeat
 		gosub *drawing
@@ -669,6 +669,11 @@ return
 			dialog "Mulanchaを終了しますか？", 2
 			if stat == 6 :end
 		}
+	}
+	; 多重起動の通知があれば前面表示
+	if ( onnstat == 1 ) {
+		gsel 0, 2
+		onnstat = 0
 	}
 	return
 
@@ -963,11 +968,44 @@ return
 	return
 
 
+; 多重起動を受け取った時
+*onnotify
+	onnstat = 1
+	return
 
+; 閉じる等の動作
 *onclose
-	if ginfo_act = 0 :end
+	if ginfo_act == 0 {
+		; ファイルマッピングオブジェクトを閉じて終了
+		CloseHandle hMapObj
+		end
+	}
 	oncstat = 1
 	return
+
+*secondrunproc
+	; ビューのマッピング
+	sharedMemPtr = MapViewOfFile( hMapObj, 4, 0, 0, SHARED_MEM_SIZE )
+
+	; 共有メモリからウィンドウハンドル取得
+	dupptr sharedMemVal, sharedMemPtr, SHARED_MEM_SIZE
+	hwndTarget = sharedMemVal(0)
+
+	; ビューのマッピング解除
+	UnmapViewOfFile sharedMemPtr
+	sharedMemPtr = 0
+	dim sharedMemVal, 1
+
+	; メッセージをポスト
+	PostMessage hwndTarget, MYWM_RUN_NOTIFY, 0, 0
+
+	; ファイルマッピングオブジェクトのクローズ
+	CloseHandle hMapObj
+
+	; 対象ウィンドウを前面に表示
+	SetForegroundWindow hwndTarget
+
+end
 
 stop
 

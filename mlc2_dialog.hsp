@@ -131,6 +131,7 @@
 		objenable idCopyItem, 1
 	}
 	editMode = 0
+	onnstat = 0
 
 	repeat
 		getkey ev, 27
@@ -150,6 +151,12 @@
 		} else {
 			objenable idEditWorkDir, 0
 			objenable idButtonEditWorkDir, 0
+		}
+
+		; 多重起動の通知があれば前面表示
+		if ( onnstat == 1 ) {
+			gsel 3, 2
+			onnstat = 0
 		}
 
 		wait 5
@@ -453,12 +460,18 @@
 	noteload "mlc2.ini"
 
 	changebgcolor = 0
+	onnstat = 0
 
 	repeat
 		getkey ev, 27
 		if (ev == 1)|(oncstat == 1) {
 			gosub *setlocker
 			if oncstat == 1 :break
+		}
+		; 多重起動の通知があれば前面表示
+		if ( onnstat == 1 ) {
+			gsel 4, 2
+			onnstat = 0
 		}
 
 		wait 5
