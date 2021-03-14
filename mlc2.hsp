@@ -613,10 +613,12 @@ dim SHFILEINFO, 88
 			if ev & 256 {
 			} else {
 				if ( i != onestat )&( i < itemLen )&( onestat < itemLen ) {
-					gosub *movedat
-					onestat = -2
-					reloaddat = 1
-					reloaddatbutnotmove = 1
+					if ( 0 <= i )&( 0 <= onestat ) {
+						gosub *movedat
+						onestat = -2
+						reloaddat = 1
+						reloaddatbutnotmove = 1
+					}
 				} else {
 					onestat = -2
 					if i < itemLen {
@@ -626,7 +628,7 @@ dim SHFILEINFO, 88
 						} else {
 							clickitem = 1
 						}
-					} else {
+					} else : if i = itemLen {
 						if copymode == 1 {
 							; 複写
 							argIndex = -1
@@ -658,7 +660,14 @@ dim SHFILEINFO, 88
 			}
 		}
 	} else : if ( i == -1 ) {
+		; 中央領域へのドラッグイベント発生阻止
+		getkey ev0, 1
+		if ev0 {
+			if ( onestat != i ) :onestat_dragged = 1
+			onestat = i
+		}
 		stick ev, 0, 1
+
 		if ev & 256 {
 			if strlen(parentdat) > 0 {
 				reloaddat = 1
