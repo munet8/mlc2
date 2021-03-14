@@ -465,7 +465,7 @@ dim SHFILEINFO, 88
 		gosub *drawing
 		gosub *event
 		wait 1
-		if (( reloaddat | puttasktray | clickitem ) == 1 )&( onestat_dragged == 0 ) :break
+		if (( reloaddat | puttasktray | clickitem ) == 1 ) :break
 	loop
 	ondstat = 0
 
@@ -584,10 +584,8 @@ dim SHFILEINFO, 88
 	} else : if ( i >= 0 ) {
 		stick ev, 0, 1
 		if ev & 256 {
-			if ( onestat != i ) :onestat_dragged = 1
 			onestat = i
 		} else {
-			onestat_dragged = 0
 			if ev & 512 {
 				if i < itemLen {
 					argIndex = i ; 編集
@@ -611,6 +609,7 @@ dim SHFILEINFO, 88
 		if onestat >= 0 {
 			stick ev, 256, 1
 			if ev & 256 {
+				if ( onestat != i ) :onestat_dragged = 1
 			} else {
 				if ( i != onestat )&( i < itemLen )&( onestat < itemLen ) {
 					if ( 0 <= i )&( 0 <= onestat ) {
@@ -622,11 +621,15 @@ dim SHFILEINFO, 88
 				} else {
 					onestat = -2
 					if i < itemLen {
-						if itemType(i) == "dir" {
-							reloaddat = 1
-							curdat = itemPath(i)
+						if onestat_dragged == 0 { ; 自分から自分にドラッグした場合のイベント起動を防ぐ判定
+							if itemType(i) == "dir" {
+								reloaddat = 1
+								curdat = itemPath(i)
+							} else {
+								clickitem = 1
+							}
 						} else {
-							clickitem = 1
+							onestat_dragged = 0
 						}
 					} else : if i = itemLen {
 						if copymode == 1 {
@@ -663,11 +666,11 @@ dim SHFILEINFO, 88
 		; 中央領域へのドラッグイベント発生阻止
 		getkey ev0, 1
 		if ev0 {
-			if ( onestat != i ) :onestat_dragged = 1
+			if ( onestat != i ) :onestat_dragged = 1 :else :onestat_dragged = 0
 			onestat = i
 		}
-		stick ev, 0, 1
 
+		stick ev, 0, 1
 		if ev & 256 {
 			if strlen(parentdat) > 0 {
 				reloaddat = 1
