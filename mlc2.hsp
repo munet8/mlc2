@@ -192,7 +192,8 @@ dim SHFILEINFO, 88
 
 	oncstat = 0
 	ondstat = 0
-	onestat = 0
+	onestat = -2
+	onestat_dragged = 0
 	onnstat = 0
 	reloaddatbutnotmove = 0
 	sdim ondfname, 1024
@@ -457,17 +458,18 @@ dim SHFILEINFO, 88
 	clickitem = 0
 
 	onestat = -2
+	onestat_dragged = 0
 	onnstat = 0
 
 	repeat
 		gosub *drawing
 		gosub *event
 		wait 1
-		if ( reloaddat | puttasktray | clickitem ) == 1 :break
+		if (( reloaddat | puttasktray | clickitem ) == 1 )&( onestat_dragged == 0 ) :break
 	loop
 	ondstat = 0
 
-	if ( puttasktray | clickitem ) == 1 :goto *tasktraylabel
+	if (( puttasktray | clickitem ) == 1 ) :goto *tasktraylabel
 
 	goto *initwindow
 
@@ -582,24 +584,28 @@ dim SHFILEINFO, 88
 	} else : if ( i >= 0 ) {
 		stick ev, 0, 1
 		if ev & 256 {
+			if ( onestat != i ) :onestat_dragged = 1
 			onestat = i
-		} else : if ev & 512 {
-			if i < itemLen {
-				argIndex = i ; 編集
-				argName = itemName(i)
-				argPath = itemPath(i)
-				argIcon = itemIcon(i)
-				argType = getTypeKey(itemType(i))
-				argWdir = itemWorkDir(i)
-				editIconIndex = itemIconIndex(i)
-				gosub *itemedit
-				reloaddat = 1
-			} else {
-				puttasktray = 1
+		} else {
+			onestat_dragged = 0
+			if ev & 512 {
+				if i < itemLen {
+					argIndex = i ; 編集
+					argName = itemName(i)
+					argPath = itemPath(i)
+					argIcon = itemIcon(i)
+					argType = getTypeKey(itemType(i))
+					argWdir = itemWorkDir(i)
+					editIconIndex = itemIconIndex(i)
+					gosub *itemedit
+					reloaddat = 1
+				} else {
+					puttasktray = 1
+				}
+			} else : if ev & 128 {
+				dialog "Mulanchaを終了しますか？", 2
+				if stat == 6 :end
 			}
-		} else : if ev & 128 {
-			dialog "Mulanchaを終了しますか？", 2
-			if stat == 6 :end
 		}
 
 		if onestat >= 0 {
