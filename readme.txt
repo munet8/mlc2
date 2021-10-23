@@ -15,12 +15,14 @@ Mulancha v2の概要
 
   ・もしMicrosoftが心変わりをして32bitのソフトウェアを動作対象外にしたら64bitのWindowsでは動作しない
 
+　・ReactOS 0.4.13 でも動作確認済
+
 
 開発環境
 
-  ・Win10 Home 2004 64bit
+  ・Win11 Home 21H2 64bit
 
-  ・HSP 3.51
+  ・HSP 3.6
 
 
 インストール・アンインストール方法
@@ -174,6 +176,12 @@ TIPS
 
 
 更新履歴
+
+  ・v2.0.4
+      ・コンパイラをHSP 3.6に変更
+      ・デフォルト設定ファイルの変更
+        ・Chromium Edgeが存在するならば、IEの代わりにする
+        ・Win11でmspaintがUWAアプリになってしまったため、explorer.exeを代役に
 
   ・v2.0.3
       ・アイテム内ドラッグの動作に関する考慮漏れを修正
