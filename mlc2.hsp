@@ -255,12 +255,18 @@ dim SHFILEINFO, 88
 		noteload "data\\root.dat"
 		noteadd "parent="                          , -1, 0
 		noteadd "[item]"                           , -1, 0
-		noteadd "name=Internet Explorer"           , -1, 0
-		s = "C:\\Program Files"
-		chdir dir_win + "\\.."
-		dirlist temp, "Program Files (x86)", 5
-		if stat != 0 :s += " (x86)"
-		s += "\\Internet Explorer\\iexplore.exe"
+		s = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
+		exist s
+		if ( strsize >= 0 ) {
+			noteadd "name=Microsoft Edge"          , -1, 0
+		} else {
+			noteadd "name=Internet Explorer"       , -1, 0
+			s = "C:\\Program Files"
+			chdir dir_win + "\\.."
+			dirlist temp, "Program Files (x86)", 5
+			if stat != 0 :s += " (x86)"
+			s += "\\Internet Explorer\\iexplore.exe"
+		}
 		noteadd "path=" + s                        , -1, 0
 		noteadd "icon=" + s                        , -1, 0
 		noteadd "type=exe"                         , -1, 0
@@ -274,9 +280,9 @@ dim SHFILEINFO, 88
 		noteadd "indx=0"                           , -1, 0
 		noteadd "wdir="                            , -1, 0
 		noteadd "[item]"                           , -1, 0
-		noteadd "name=ペイント"                    , -1, 0
-		noteadd "path=mspaint.exe"                 , -1, 0
-		noteadd "icon=" + dir_sys + "\\mspaint.exe", -1, 0
+		noteadd "name=エクスプローラー"            , -1, 0
+		noteadd "path=explorer.exe"                , -1, 0
+		noteadd "icon=" + dir_win + "\\explorer.exe", -1, 0
 		noteadd "type=exe"                         , -1, 0
 		noteadd "indx=0"                           , -1, 0
 		noteadd "wdir="                            , -1, 0
