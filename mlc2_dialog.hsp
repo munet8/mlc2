@@ -229,6 +229,13 @@
 
 *repaintIcon
 	editIconIndexMax = getIconIndexMax( argIcon )
+	if ( editIconIndexMax == 0 ) {
+		; アイコンを持たない実行ファイルは決め打ちで再設定する。既存のものも容赦なく。
+		argIcon = dir_sys + "\\shell32.dll"
+		objprm idEditIcon, argIcon
+		editIconIndexMax = getIconIndexMax( argIcon )
+		editIconIndex = 2
+	}
 	gosub *repaintIconInner
 	return
 
