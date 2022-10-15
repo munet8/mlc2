@@ -567,6 +567,19 @@ dim SHFILEINFO, 88
 	return
 
 *event
+
+	stick ev, 0, 1
+
+	if ( GetAsyncKeyState(5) == 0x8001 ) {
+		if strlen(parentdat) > 0 {
+			reloaddat = 1
+			curdat = parentdat
+		}
+	} else : if ev & 128 {
+		dialog "Mulanchaを終了しますか？", 2
+		if stat == 6 :end
+	}
+
 	if ( ondstat == 1 ) {
 		argIndex = -1 ; 新規
 		argName = getpath( ondfname, 9 )
@@ -588,27 +601,21 @@ dim SHFILEINFO, 88
 		gosub *itemedit
 		reloaddat = 1
 	} else : if ( i >= 0 ) {
-		stick ev, 0, 1
 		if ev & 256 {
 			onestat = i
-		} else {
-			if ev & 512 {
-				if i < itemLen {
-					argIndex = i ; 編集
-					argName = itemName(i)
-					argPath = itemPath(i)
-					argIcon = itemIcon(i)
-					argType = getTypeKey(itemType(i))
-					argWdir = itemWorkDir(i)
-					editIconIndex = itemIconIndex(i)
-					gosub *itemedit
-					reloaddat = 1
-				} else {
-					puttasktray = 1
-				}
-			} else : if ev & 128 {
-				dialog "Mulanchaを終了しますか？", 2
-				if stat == 6 :end
+		} else : if ev & 512 {
+			if i < itemLen {
+				argIndex = i ; 編集
+				argName = itemName(i)
+				argPath = itemPath(i)
+				argIcon = itemIcon(i)
+				argType = getTypeKey(itemType(i))
+				argWdir = itemWorkDir(i)
+				editIconIndex = itemIconIndex(i)
+				gosub *itemedit
+				reloaddat = 1
+			} else {
+				puttasktray = 1
 			}
 		}
 
@@ -676,7 +683,6 @@ dim SHFILEINFO, 88
 			onestat = i
 		}
 
-		stick ev, 0, 1
 		if ev & 256 {
 			if strlen(parentdat) > 0 {
 				reloaddat = 1
@@ -689,9 +695,6 @@ dim SHFILEINFO, 88
 				gosub *createSettingDialog
 				reloaddat = 1
 			}
-		} else : if ev & 128 {
-			dialog "Mulanchaを終了しますか？", 2
-			if stat == 6 :end
 		}
 	}
 	; 多重起動の通知があれば前面表示
