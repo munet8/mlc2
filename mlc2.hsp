@@ -135,6 +135,11 @@
 #deffunc setColor int j
 	color j >> 16, ( j >> 8 ) & 255, j & 255
 	return
+#defcfunc adjustZero22Pi double d
+	f = d
+	if f < 0 :f += 2.0 * M_PI
+	if f > ( 2.0 * M_PI ) :f -= 2.0 * M_PI
+	return f
 #global
 
 #module
@@ -462,6 +467,7 @@ dim SHFILEINFO, 88
 	reloaddatbutnotmove = 0
 	puttasktray = 0
 	clickitem = 0
+	wheelrad = 0.0
 
 	onestat = -2
 	onestat_dragged = 0
@@ -502,7 +508,8 @@ dim SHFILEINFO, 88
 			; 各アイテム
 			th = atan(y - 160.0, x - 160.0)
 			th += M_PI / 2.0
-			if th < 0 :th += 2.0 * M_PI
+			th -= wheelrad ; ホイール移動補正
+ 			th = adjustZero22Pi(th)
 
 			i = int(th * division / (2.0 * M_PI))
 		}
@@ -515,6 +522,9 @@ dim SHFILEINFO, 88
 		; 描画
 		radLine = deg2rad(360 * cnt / division - 90)
 		radIco = deg2rad(360 * cnt / division - 90 + (180 / division))
+		; ホイール移動補正
+		radLine += wheelrad
+		radIco += wheelrad
 
 		if cnt < itemLen {
 			; アイコン描画
@@ -644,7 +654,7 @@ dim SHFILEINFO, 88
 						} else {
 							onestat_dragged = 0
 						}
-					} else : if i = itemLen {
+					} else : if i == itemLen {
 						if copymode == 1 {
 							; 複写
 							argIndex = -1
@@ -696,6 +706,16 @@ dim SHFILEINFO, 88
 				reloaddat = 1
 			}
 		}
+	}
+	; ホイール移動補正を取得
+	w = mousew
+	if ( w != 0 ) {
+		if (( getMx() < 160 ) ^ ( w > 0 )) {
+			wheelrad -= M_PI / 16.0
+		} else {
+			wheelrad += M_PI / 16.0
+		}
+ 		wheelrad = adjustZero22Pi(wheelrad)
 	}
 	; 多重起動の通知があれば前面表示
 	if ( onnstat == 1 ) {
