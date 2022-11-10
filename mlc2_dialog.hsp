@@ -347,10 +347,10 @@
 *createSettingDialog
 
 	; 設定編集画面の作成
-	screen 4, 320, 240, 2
+	screen 4, 320, 280, 2
 	cls
 	setColor iniBGColor
-	boxf 0, 0, 320, 240
+	boxf 0, 0, 320, 280
 
 	objmode 2, 1
 	setColor iniFGColor
@@ -439,16 +439,28 @@
 	idSettingSplash = stat
 	objprm idSettingSplash, iniSplash
 
-	pos 88, 160
+	pos 16, 160
+	font iniFont, 16
+	setColor iniFGColor
+	mes "ホイールスクロール量"
+
+	pos 88, 182
+	winobj "msctls_trackbar32", "", , $50000000 | $1, 176, 20
+	objSettingWheel = objinfo(stat, 2)
+	sendmsg objSettingWheel, $405, 1, iniWheel ; 初期つまみ位置
+	sendmsg objSettingWheel, $414, 10          ; バーの間隔
+	oncmd gosub *setwheel, $114
+
+	pos 88, 208
 	font iniFont, 16
 	objsize 80, 32
 	button gosub "閉じる", *closesetting
 
-	pos 152 - ( 8 * strlen( version )), 216
+	pos 152 - ( 8 * strlen( version )), 256
 	font iniFont, 16
 	mes "Mulancha " + version + " by "
 
-	pos 256, 214
+	pos 256, 254
 	font iniFont, 12
 	objsize 48, 20
 	button gosub "m-ushi", *gotomunet
@@ -561,6 +573,21 @@
 		iniFiler = refstr
 		objprm idSettingFiler, iniFiler
 		noteadd "filer=" + iniFiler, 3, 1
+	}
+	return
+
+*setwheel
+	if lparam == objSettingWheel {
+		sendmsg objSettingWheel, $400
+		iniWheel = stat
+		if notemax < 8 {
+			noteadd "splash=" + settingSplash, -1, 0
+			noteadd "wheel=" + iniWheel, -1, 0
+		} else : if notemax == 8 {
+			noteadd "wheel=" + iniWheel, -1, 0
+		} else {
+			noteadd "wheel=" + iniWheel, 8, 1
+		}
 	}
 	return
 

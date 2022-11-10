@@ -12,6 +12,7 @@
 ; タスクトレイへの格納 http://hsp.tv/play/pforum.php?mode=pastwch&num=1594#1760
 ; 領域外のマウスイベント取得 http://hsp.tv/play/pforum.php?mode=pastwch&num=76709#76718
 ; 多重起動の防止 http://chokuto.ifdef.jp/advanced/singleton2.html
+; トラックバーコントロールの適用 http://lhsp.s206.xrea.com/hsp_object7.html
 
 ; スクリーンID
 ; 0 : メイン画面
@@ -247,6 +248,8 @@ dim SHFILEINFO, 88
 	iniBGColor = int("$" + strmid(s, 9, 6))
 	noteget s, 7
 	iniSplash = int(strmid(s, 7, 1))
+	noteget s, 8
+	if strlen( s ) == 0 :iniWheel = 50:else :iniWheel = int(strmid(s, 6, 3))
 
 	; dataフォルダなければ作成
 	dirlist temp, "data", 5
@@ -710,10 +713,11 @@ dim SHFILEINFO, 88
 	; ホイール移動補正を取得
 	w = mousew
 	if ( w != 0 ) {
+		movement = 1.0 * iniWheel * M_PI / 800.0
 		if (( getMx() < 160 ) ^ ( w > 0 )) {
-			wheelrad -= M_PI / 16.0
+			wheelrad -= movement
 		} else {
-			wheelrad += M_PI / 16.0
+			wheelrad += movement
 		}
  		wheelrad = adjustZero22Pi(wheelrad)
 	}
