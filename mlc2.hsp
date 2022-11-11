@@ -466,11 +466,12 @@ dim SHFILEINFO, 88
 
 	gsel 0, 2
 
+	if reloaddatbutnotmove == 0 :wheelrad = 0.0
+
 	reloaddat = 0
 	reloaddatbutnotmove = 0
 	puttasktray = 0
 	clickitem = 0
-	wheelrad = 0.0
 
 	onestat = -2
 	onestat_dragged = 0
