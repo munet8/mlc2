@@ -230,6 +230,23 @@ dim SHFILEINFO, 88
 	sdim iniFiler, 1024
 	sdim iniFont, 128
 
+	exist "mlc2.ini"
+	if strsize == -1 {
+		s = ""
+		bsave "mlc2.ini", s
+		noteload "mlc2.ini"
+		noteadd "[setting]"          , -1, 0
+		noteadd "locker1=4"          , -1, 0
+		noteadd "locker2=1"          , -1, 0
+		noteadd "filer=explorer"     , -1, 0
+		noteadd "font=ÇlÇr ÉSÉVÉbÉN" , -1, 0
+		noteadd "fgcolor=#000000"    , -1, 0
+		noteadd "bgcolor=#ffffff"    , -1, 0
+		noteadd "splash=1"           , -1, 0
+		noteadd "wheel=50"           , -1, 0
+		notesave "mlc2.ini"
+	}
+
 	noteload "mlc2.ini"
 	noteget s, 1
 	iniLocker1 = int(strmid(s, 8, 1))
