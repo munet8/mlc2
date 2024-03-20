@@ -413,6 +413,7 @@ dim SHFILEINFO, 88
 
 	; ロッカージェスチャー入力待ち
 	MouseLock = 0
+	TaskTrayLeftClick = 0
 	onnstat = 0
 	repeat
 		/*
@@ -440,6 +441,7 @@ dim SHFILEINFO, 88
 		}
 		; 多重起動の通知があれば起動と見なす
 		if ( onnstat == 1 ) :break
+		if ( TaskTrayLeftClick == 1 ) :break
 		wait 1
 	loop
 
@@ -774,7 +776,12 @@ dim SHFILEINFO, 88
 ; タスクトレイ関係 |
 ;------------------+
 *clicktasktray
-	if (ginfo_act < 0)&(lparam == $00000201) {
+	; 左クリック
+	if ( ginfo_act < 0 ) & ( lparam == $00000201 ) {
+		TaskTrayLeftClick = 1
+	}
+	; 右クリック
+	if ( ginfo_act < 0 ) & ( lparam == $00000204 ) {
 		dialog "Mulanchaを終了しますか？", 2
 		if stat == 6 :end
 	}
