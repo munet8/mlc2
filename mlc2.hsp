@@ -568,11 +568,11 @@ dim SHFILEINFO, 88
 	if i == -1 {
 		setColor iniFGColor :font iniFont, 16
 		if strlen(parentdat) > 0 {
-			pos 128, 152
-			mes "一つ上へ"
+			pos 128, 128 :mes "一つ上へ"
+			gosub *drawing_minimum
 		} else {
-			pos 144, 152
-			mes "設定"
+			pos 144, 128 :mes "設定"
+			gosub *drawing_minimum
 		}
 	} else : if ( 0 <= i )&( i < itemLen ) {
 		if ( strlen(itemName(i)) > 0 ) {
@@ -588,13 +588,19 @@ dim SHFILEINFO, 88
 			loop
 		}
 	} else : if ( i == itemLen ) {
-		setColor iniFGColor :font iniFont, 16 :pos 144, 152
-		mes "新規"
+		setColor iniFGColor :font iniFont, 16
+		pos 144, 128 :mes "新規"
+		gosub *drawing_minimum
 	} else {
 		; 画面外
 	}
 
 	redraw 1
+	return
+
+*drawing_minimum
+	pos 128, 160 :mes "右クリで"
+	pos 136, 176 :mes "最小化"
 	return
 
 *event
@@ -726,6 +732,8 @@ dim SHFILEINFO, 88
 				gosub *createSettingDialog
 				reloaddat = 1
 			}
+		} else : if ev & 512 {
+			puttasktray = 1
 		}
 	}
 	; ホイール移動補正を取得
