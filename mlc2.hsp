@@ -13,6 +13,7 @@
 ; 領域外のマウスイベント取得 http://hsp.tv/play/pforum.php?mode=pastwch&num=76709#76718
 ; 多重起動の防止 http://chokuto.ifdef.jp/advanced/singleton2.html
 ; トラックバーコントロールの適用 http://lhsp.s206.xrea.com/hsp_object7.html
+; ポップアップメニューの適用 http://lhsp.s206.xrea.com/hsp_menu.html
 
 ; スクリーンID
 ; 0 : メイン画面
@@ -32,6 +33,10 @@
 #cfunc GetAsyncKeyState   "GetAsyncKeyState" int
 #func PostMessage         "PostMessageA" sptr,sptr,sptr,sptr
 #func SetForegroundWindow "SetForegroundWindow" sptr
+#func CreatePopupMenu     "CreatePopupMenu"
+#func AppendMenuA         "AppendMenuA" sptr,sptr,sptr,sptr
+#func TrackPopupMenu      "TrackPopupMenu" sptr,sptr,sptr,sptr,sptr,sptr,sptr
+#func global DestroyMenu "DestroyMenu" sptr
 #uselib "shell32"
 #func ShellExecuteEx   "ShellExecuteEx" sptr
 #func DragAcceptFiles  "DragAcceptFiles" int,int
@@ -218,6 +223,12 @@ dim SHFILEINFO, 88
 	UnmapViewOfFile sharedMemPtr
 	sharedMemPtr = 0
 	dim sharedMemVal, 1
+
+	; ポップアップメニューの作成
+	CreatePopupMenu
+	hMenu.0 = stat
+	AppendMenuA hMenu.0, 0, $10, "起動"
+	AppendMenuA hMenu.0, 0, $20, "終了"
 
 	curdir = dir_cur
 
@@ -782,8 +793,17 @@ dim SHFILEINFO, 88
 	}
 	; 右クリック
 	if ( ginfo_act < 0 ) & ( lparam == $00000204 ) {
-		dialog "Mulanchaを終了しますか？", 2
-		if stat == 6 :end
+		x = ginfo_mx
+		y = ginfo_my
+		TrackPopupMenu hMenu.0, $100, x, y, 0, hwnd, 0
+		if stat = $10 {
+			; 起動
+			TaskTrayLeftClick = 1
+		} else : if stat = $20 {
+			; 終了
+			dialog "Mulanchaを終了しますか？", 2
+			if stat == 6 :end
+		}
 	}
 	return
 
@@ -1060,6 +1080,8 @@ dim SHFILEINFO, 88
 ; 閉じる等の動作
 *onclose
 	if ginfo_act == 0 {
+		; ポップアップメニューの破棄
+		DestroyMenu hMenu.0
 		; ファイルマッピングオブジェクトを閉じて終了
 		CloseHandle hMapObj
 		end
