@@ -206,6 +206,7 @@ dim SHFILEINFO, 88
 	onestat = -2
 	onestat_dragged = 0
 	onnstat = 0
+	activatingsetting = 0
 	reloaddatbutnotmove = 0
 	sdim ondfname, 1024
 
@@ -227,7 +228,7 @@ dim SHFILEINFO, 88
 	; ポップアップメニューの作成
 	CreatePopupMenu
 	hMenu.0 = stat
-	AppendMenuA hMenu.0, 0, $10, "起動"
+	AppendMenuA hMenu.0, 0, $10, "設定"
 	AppendMenuA hMenu.0, 0, $20, "終了"
 
 	curdir = dir_cur
@@ -625,7 +626,15 @@ dim SHFILEINFO, 88
 			reloaddat = 1
 			curdat = parentdat
 		}
-	} else : if ev & 128 {
+	} else : if ( activatingsetting == 1 ) {
+		activatingsetting = 0
+		gosub *settingedit
+
+		; フォント等の変更のため、編集・設定ダイアログを再作成
+		gosub *createEditDialog
+		gosub *createSettingDialog
+		reloaddat = 1
+	} else : if ( ev & 128 ) {
 		dialog "Mulanchaを終了しますか？", 2
 		if stat == 6 :end
 	}
@@ -797,8 +806,9 @@ dim SHFILEINFO, 88
 		y = ginfo_my
 		TrackPopupMenu hMenu.0, $100, x, y, 0, hwnd, 0
 		if stat = $10 {
-			; 起動
+			; 設定
 			TaskTrayLeftClick = 1
+			activatingsetting = 1
 		} else : if stat = $20 {
 			; 終了
 			dialog "Mulanchaを終了しますか？", 2
