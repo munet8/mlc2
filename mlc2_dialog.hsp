@@ -111,7 +111,7 @@
 	EnableWindow hwnd, 0 ; 自ウィンドウを無効にする。
 
 	gsel 3, -1
-	width , , ginfo_mx - 160, ginfo_my - 120
+	width , , adjustPosX(ginfo(10)), adjustPosY(ginfo(11))
 	gsel 3, 2
 	objprm idEditName, argName
 	objprm idEditPath, argPath
@@ -472,7 +472,7 @@
 	EnableWindow hwnd, 0 ; 自ウィンドウを無効にする。
 
 	gsel 4, -1
-	width , , ginfo_mx - 160, ginfo_my - 120
+	width , , adjustPosX(ginfo(10)), adjustPosY(ginfo(11))
 	gsel 4, 2
 
 	chdir curdir

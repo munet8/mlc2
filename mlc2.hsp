@@ -146,6 +146,16 @@
 	if f < 0 :f += 2.0 * M_PI
 	if f > ( 2.0 * M_PI ) :f -= 2.0 * M_PI
 	return f
+#defcfunc adjustPosX int j
+	f = ginfo_mx - int( j / 2 )
+	if f < 0 :f = 0
+	if f > (ginfo_dispx - j) :f = ginfo_dispx - j
+	return f
+#defcfunc adjustPosY int j
+	f = ginfo_my - int( j / 2 )
+	if f < 0 :f = 0
+	if f > (ginfo_dispy - j) :f = ginfo_dispy - j
+	return f
 #global
 
 #module
@@ -472,12 +482,8 @@ dim SHFILEINFO, 88
 *initwindow
 	; 円形ウィンドウ作成
 	if reloaddatbutnotmove == 0 {
-		x = ginfo_mx - 160
-		y = ginfo_my - 160
-		if x < 0 :x = 0
-		if x > (ginfo_dispx - 320) :x = ginfo_dispx - 320
-		if y < 0 :y = 0
-		if y > (ginfo_dispy - 320) :y = ginfo_dispy - 320
+		x = adjustPosX(320)
+		y = adjustPosY(320)
 		bgscr 0, 320, 320, 0, x, y
 		hRgn = CreateEllipticRgn (0, 0, 320, 320)
 		SetWindowRgn hwnd, hRgn, 1
