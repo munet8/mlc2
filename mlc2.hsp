@@ -822,8 +822,7 @@ dim SHFILEINFO, 88
 			activatingsetting = 1
 		} else : if stat = $30 {
 			; I—¹
-			dialog "Mulancha‚ğI—¹‚µ‚Ü‚·‚©H", 2
-			if stat == 6 :end
+			end
 		}
 	}
 	return
