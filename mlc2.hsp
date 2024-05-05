@@ -13,7 +13,7 @@
 ; 領域外のマウスイベント取得 http://hsp.tv/play/pforum.php?mode=pastwch&num=76709#76718
 ; 多重起動の防止 http://chokuto.ifdef.jp/advanced/singleton2.html
 ; トラックバーコントロールの適用 http://lhsp.s206.xrea.com/hsp_object7.html
-; ポップアップメニューの適用 http://lhsp.s206.xrea.com/hsp_menu.html
+; ポップアップメニューの適用 http://lhsp.s206.xrea.com/hsp_menu.html http://bravo.tank.jp/cgi/PT.php?VCPP/MFC/Menu/CancelContextMenu https://weekbravo.sakura.ne.jp/cgi/PT.php?Win/TaskTray/TaskTrayIn
 
 ; スクリーンID
 ; 0 : メイン画面
@@ -36,7 +36,7 @@
 #func CreatePopupMenu     "CreatePopupMenu"
 #func AppendMenuA         "AppendMenuA" sptr,sptr,sptr,sptr
 #func TrackPopupMenu      "TrackPopupMenu" sptr,sptr,sptr,sptr,sptr,sptr,sptr
-#func global DestroyMenu "DestroyMenu" sptr
+#func DestroyMenu         "DestroyMenu" sptr
 #uselib "shell32"
 #func ShellExecuteEx   "ShellExecuteEx" sptr
 #func DragAcceptFiles  "DragAcceptFiles" int,int
@@ -238,8 +238,9 @@ dim SHFILEINFO, 88
 	; ポップアップメニューの作成
 	CreatePopupMenu
 	hMenu.0 = stat
-	AppendMenuA hMenu.0, 0, $10, "設定"
-	AppendMenuA hMenu.0, 0, $20, "終了"
+	AppendMenuA hMenu.0, 0, $10, "ランチャの表示"
+	AppendMenuA hMenu.0, 0, $20, "設定"
+	AppendMenuA hMenu.0, 0, $30, "終了"
 
 	curdir = dir_cur
 
@@ -809,12 +810,17 @@ dim SHFILEINFO, 88
 	if ( ginfo_act < 0 ) & ( lparam == $00000204 ) {
 		x = ginfo_mx
 		y = ginfo_my
+		SetForegroundWindow hwnd
 		TrackPopupMenu hMenu.0, $100, x, y, 0, hwnd, 0
-		if stat = $10 {
+		; FIXME: この段階でPostMessageでWM_NULLをかませと資料は言っているが、逆に動作がおかしくなる
+		if stat == $10 {
+			; 表示
+			TaskTrayLeftClick = 1
+		} else : if stat = $20 {
 			; 設定
 			TaskTrayLeftClick = 1
 			activatingsetting = 1
-		} else : if stat = $20 {
+		} else : if stat = $30 {
 			; 終了
 			dialog "Mulanchaを終了しますか？", 2
 			if stat == 6 :end
