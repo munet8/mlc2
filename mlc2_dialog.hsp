@@ -517,9 +517,11 @@
 	}
 
 	gsel 4, -1
-	gsel 0, 2
-	EnableWindow hwnd, 1
-
+	if activatingsetting == 0 {
+		; タスクトレイから設定を呼び出しでない場合、メイン画面表示
+		gsel 0, 2
+		EnableWindow hwnd, 1
+	}
 	return
 
 *setlocker

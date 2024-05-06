@@ -475,8 +475,9 @@ dim SHFILEINFO, 88
 
 	; タスクトレイの右クリックから設定画面を直接呼ぶ場合
 	if ( activatingsetting == 1 ) {
-		activatingsetting = 0
 		gosub *settingedit
+		activatingsetting = 0
+		clickitem = 0
 		goto *tasktraylabel
 	}
 
