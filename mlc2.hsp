@@ -220,11 +220,6 @@ dim SHFILEINFO, 88
 	reloaddatbutnotmove = 0
 	sdim ondfname, 1024
 
-	; ReactOS判定用(もちろん、将来的にはなくしたい)
-	s = dir_win
-	isReactOS = instr(s, 0, "ReactOS")
-	isReactOS = ( isReactOS > -1 )
-
 	; 多重起動通知の受付
 	oncmd gosub *onnotify, MYWM_RUN_NOTIFY
 	; タスクトレイのアイコンクリック
@@ -243,7 +238,7 @@ dim SHFILEINFO, 88
 	; ポップアップメニューの作成
 	CreatePopupMenu
 	hMenu.0 = stat
-	if isReactOS == 0 :AppendMenuA hMenu.0, 0, $10, "ランチャの表示"
+	AppendMenuA hMenu.0, 0, $10, "ランチャの表示"
 	AppendMenuA hMenu.0, 0, $20, "設定"
 	AppendMenuA hMenu.0, 0, $30, "終了"
 
@@ -809,11 +804,15 @@ dim SHFILEINFO, 88
 ;------------------+
 *clicktasktray
 	; 左クリック
-	if ( ginfo_act < 0 ) & ( lparam == $00000201 ) & ( isReactOS == 0 ) {
+	; NOTE: WM_LBUTTONDOWN(0x0201)ではなく、WM_LBUTTONUP(0x0202)でイベントを取るべき。
+	;       ReactOS 0.4.14において、
+	;       タスクトレイからアイコンを消した直後、別のアイコンのクリックしてしまい、
+	;       このとき高確率でOSを巻き込んでフリーズするため。
+	if ( ginfo_act < 0 ) & ( lparam == $00000202 ) {
 		TaskTrayLeftClick = 1
 	}
 	; 右クリック
-	if ( ginfo_act < 0 ) & ( lparam == $00000204 ) {
+	if ( ginfo_act < 0 ) & ( lparam == $00000205 ) {
 		x = ginfo_mx
 		y = ginfo_my
 		SetForegroundWindow hwnd
