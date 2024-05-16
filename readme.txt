@@ -15,12 +15,17 @@ Mulancha 2の概要
 
   ・もしMicrosoftが心変わりをして32bitのソフトウェアを動作対象外にしたら64bitのWindowsでは動作しない
 
-  ・ReactOS 0.4.14 でも動作確認済
+
+検証環境
+
+  ・Windows 11 Home 23H2 64bit
+
+  ・ReactOS 0.4.14
 
 
 開発環境
 
-  ・Win11 Home 21H2 64bit
+  ・Windows 11 Home 23H2 64bit
 
   ・HSP 3.6
 
@@ -194,6 +199,9 @@ TIPS
 
 
 更新履歴
+
+  ・v2.1.4
+      ・ReactOSにおいてタスクトレイからランチャを呼び出す機能を復活
 
   ・v2.1.3
       ・タスクトレイアイコンの操作仕様を改善・バグ修正
