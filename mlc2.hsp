@@ -238,9 +238,13 @@ dim SHFILEINFO, 88
 	; ポップアップメニューの作成
 	CreatePopupMenu
 	hMenu.0 = stat
-	AppendMenu hMenu.0, 0, $10, "ランチャの表示"
-	AppendMenu hMenu.0, 0, $20, "設定"
-	AppendMenu hMenu.0, 0, $30, "終了"
+	sdim v, 260, 2
+	cnvstow v.0, "表示"
+	cnvstow v.1, "設定"
+	cnvstow v.2, "終了"
+	AppendMenu hMenu.0, 0, $10, v.0
+	AppendMenu hMenu.0, 0, $20, v.1
+	AppendMenu hMenu.0, 0, $30, v.2
 
 	curdir = dir_cur
 
