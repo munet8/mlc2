@@ -31,24 +31,24 @@
 #func SetWindowRgn        "SetWindowRgn" int, int, int
 #func EnableWindow        "EnableWindow" int, int
 #cfunc GetAsyncKeyState   "GetAsyncKeyState" int
-#func PostMessage         "PostMessageA" sptr,sptr,sptr,sptr
+#func PostMessage         "PostMessageW" sptr,sptr,sptr,sptr
 #func SetForegroundWindow "SetForegroundWindow" sptr
 #func CreatePopupMenu     "CreatePopupMenu"
-#func AppendMenuA         "AppendMenuA" sptr,sptr,sptr,sptr
+#func AppendMenu          "AppendMenuW" sptr,sptr,sptr,sptr
 #func TrackPopupMenu      "TrackPopupMenu" sptr,sptr,sptr,sptr,sptr,sptr,sptr
 #func DestroyMenu         "DestroyMenu" sptr
 #uselib "shell32"
 #func ShellExecuteEx   "ShellExecuteEx" sptr
 #func DragAcceptFiles  "DragAcceptFiles" int,int
-#func DragQueryFile    "DragQueryFileA"  int,int,int,int
+#func DragQueryFile    "DragQueryFileW"  int,int,int,int
 #func DragQueryPoint   "DragQueryPoint"  int,int
 #func DragFinish       "DragFinish"      int
-#func ExtractIconEx    "ExtractIconExA" int, int, int, int, int
+#func ExtractIconEx    "ExtractIconExW" int, int, int, int, int
 #func Shell_NotifyIcon "Shell_NotifyIcon" int, int
 #uselib "kernel32.dll"
-#func  GetModuleFileNameA "GetModuleFileNameA" int, int, int
+#func  GetModuleFileName  "GetModuleFileNameW" int, int, int
 #func  CloseHandle        "CloseHandle"  sptr
-#cfunc CreateFileMapping  "CreateFileMappingA" sptr,sptr,sptr,sptr,sptr,sptr
+#cfunc CreateFileMapping  "CreateFileMappingW" sptr,sptr,sptr,sptr,sptr,sptr
 #cfunc GetLastError       "GetLastError"
 #cfunc MapViewOfFile      "MapViewOfFile" sptr,sptr,sptr,sptr,sptr
 #func  UnmapViewOfFile    "UnmapViewOfFile" sptr
@@ -238,9 +238,9 @@ dim SHFILEINFO, 88
 	; ポップアップメニューの作成
 	CreatePopupMenu
 	hMenu.0 = stat
-	AppendMenuA hMenu.0, 0, $10, "ランチャの表示"
-	AppendMenuA hMenu.0, 0, $20, "設定"
-	AppendMenuA hMenu.0, 0, $30, "終了"
+	AppendMenu hMenu.0, 0, $10, "ランチャの表示"
+	AppendMenu hMenu.0, 0, $20, "設定"
+	AppendMenu hMenu.0, 0, $30, "終了"
 
 	curdir = dir_cur
 
@@ -373,7 +373,7 @@ dim SHFILEINFO, 88
 	; タスクトレイ格納
 	gsel 0, -1
 	sdim myNameIs, 3200
-	GetModuleFileNameA hm, varptr(myNameIs), 3200
+	GetModuleFileName hm, varptr(myNameIs), 3200
 	myiconB = 0: myiconS = 0
 	ExtractIconEx varptr(myNameIs), 0, varptr(myiconB), varptr(myiconS), 1
 	hIcon = myiconS
@@ -795,7 +795,7 @@ dim SHFILEINFO, 88
 	DragFinish hdrop
 
 	ondstat = 1
-	ondfname = fname
+	ondfname = cnvwtos(fname)
 
 	return
 
