@@ -18,14 +18,14 @@ Mulancha 2の概要
 
 検証環境
 
-  ・Windows 11 Home 23H2 64bit
+  ・Windows 11 Home 24H2 64bit
 
   ・ReactOS 0.4.14
 
 
 開発環境
 
-  ・Windows 11 Home 23H2 64bit
+  ・Windows 11 Home 24H2 64bit
 
   ・HSP 3.6
 
@@ -199,6 +199,10 @@ TIPS
 
 
 更新履歴
+
+  ・v2.1.5
+      ・Worst Fit暫定対策
+        ・ANSI APIからUnicode APIへの切替
 
   ・v2.1.4
       ・ReactOSにおいてタスクトレイからランチャを呼び出す機能を復活
