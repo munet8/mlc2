@@ -417,7 +417,11 @@ dim SHFILEINFO, 88
 				} else {
 					if isAbsolutePath(itemPath(i)) :chdir getpathEx(itemPath(i), 0)
 				}
-				exec itemPath(i)
+				if strlen(ondfname) > 0 {
+					exec itemPath(i) + " " + ondfname
+ 				} else {
+					exec itemPath(i)
+				}
 			} else : if itemType(i) == "file" {
 				exec itemPath(i), 16
 			} else : if itemType(i) == "fold" {
@@ -501,12 +505,7 @@ dim SHFILEINFO, 88
 	gosub *getdat
 
 	oncmd gosub *onDropFiles, 0x0233
-	if itemLen < 16 {
-		DragAcceptFiles hwnd, 1
-	} else {
-		; アイテム数が最大の場合はD&Dを受け付けない
-		DragAcceptFiles hwnd, 0
-	}
+	DragAcceptFiles hwnd, 1
 
 ;-------------------------------------------------------------------------------
 ;          ;
@@ -522,6 +521,8 @@ dim SHFILEINFO, 88
 	reloaddatbutnotmove = 0
 	puttasktray = 0
 	clickitem = 0
+
+	ondfname = ""
 
 	onestat = -2
 	onestat_dragged = 0
@@ -651,25 +652,39 @@ dim SHFILEINFO, 88
 	}
 
 	if ( ondstat == 1 ) {
-		argIndex = -1 ; 新規
-		argName = getpath( ondfname, 9 )
-		argPath = ondfname
-		argIcon = ondfname
-		dirlist temp, ondfname, 5
-		if ( stat == 1 ) {
-			argType = getTypeKey( "fold" )
-			argWdir = ""
-		} else {
-			argType = isNotExecutable( ondfname )
-			if argType == 0 {
-				argWdir = getpathEx( ondfname, 0 )
-			} else {
+		if ( i == itemLen ) && ( itemLen < 16 ) {
+			; アイテム新規作成
+			argIndex = -1
+			argName = getpath( ondfname, 9 )
+			argPath = ondfname
+			argIcon = ondfname
+			dirlist temp, ondfname, 5
+			if ( stat == 1 ) {
+				argType = getTypeKey( "fold" )
 				argWdir = ""
+			} else {
+				argType = isNotExecutable( ondfname )
+				if argType == 0 {
+					argWdir = getpathEx( ondfname, 0 )
+				} else {
+					argWdir = ""
+				}
 			}
+			editIconIndex = 0
+			gosub *itemedit
+			reloaddat = 1
+		} else : if (( i >= 0 ) && ( itemType(i) == "exe" )) {
+			; D&Dでファイルを開く
+			clickitem = 1
+			;if strlen(itemWorkDir(i)) > 0 {
+			;	chdir itemWorkDir(i)
+			;} else {
+			;	if isAbsolutePath(itemPath(i)) :chdir getpathEx(itemPath(i), 0)
+			;}
+			;exec itemPath(i) + " " + ondfname
+		} else {
+			ondstat = 0
 		}
-		editIconIndex = 0
-		gosub *itemedit
-		reloaddat = 1
 	} else : if ( i >= 0 ) {
 		if ev & 256 {
 			onestat = i
