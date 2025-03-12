@@ -652,8 +652,9 @@ dim SHFILEINFO, 88
 		if stat == 6 :end
 	}
 
-	if ( ondstat == 1 ) {		
-		if ( i >= 0 ) && ( i < itemLen ) && ( itemType(i) == "exe" ) {
+	if ( ondstat == 1 ) {
+		s = "" :if ( i >= 0 ) && ( i < itemLen ) :s = itemType(i)
+		if ( s == "exe" ) {
 			; D&Dでファイルを開く
 			clickitem = 1
 		} else : if ( itemLen < 16 ) {
