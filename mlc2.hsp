@@ -272,6 +272,7 @@ dim SHFILEINFO, 88
 		noteadd "bgcolor=#ffffff"    , -1, 0
 		noteadd "splash=1"           , -1, 0
 		noteadd "wheel=50"           , -1, 0
+		noteadd "rotation=0"         , -1, 0
 		notesave "mlc2.ini"
 	}
 
@@ -295,6 +296,8 @@ dim SHFILEINFO, 88
 	iniSplash = int(strmid(s, 7, 1))
 	noteget s, 8
 	if strlen( s ) == 0 :iniWheel = 50:else :iniWheel = int(strmid(s, 6, 3))
+	noteget s, 9
+	if strlen( s ) == 0 :iniKeepRotation = 0:else :iniKeepRotation = int(strmid(s, 9, 1))
 
 	; dataÉtÉHÉãÉ_Ç»ÇØÇÍÇŒçÏê¨
 	dirlist temp, "data", 5

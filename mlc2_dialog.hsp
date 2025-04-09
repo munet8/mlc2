@@ -347,10 +347,10 @@
 *createSettingDialog
 
 	; ê›íËï“èWâÊñ ÇÃçÏê¨
-	screen 4, 320, 280, 2
+	screen 4, 320, 308, 2
 	cls
 	setColor iniBGColor
-	boxf 0, 0, 320, 280
+	boxf 0, 0, 320, 308
 
 	objmode 2, 1
 	setColor iniFGColor
@@ -451,16 +451,28 @@
 	sendmsg objSettingWheel, $414, 10          ; ÉoÅ[ÇÃä‘äu
 	oncmd gosub *setwheel, $114
 
-	pos 88, 208
+	pos 16, 212
+	font iniFont, 16
+	setColor iniFGColor
+	mes "âÒì]ó¶Ç"
+
+	pos 88, 210
+	font iniFont, 12
+	objsize 96, 20
+	combox settingKeepRotation, 40, "ï€ë∂ÇµÇ»Ç¢\nï€ë∂Ç∑ÇÈ"
+	idSettingKeepRotation = stat
+	objprm idSettingKeepRotation, iniKeepRotation
+
+	pos 88, 236
 	font iniFont, 16
 	objsize 80, 32
 	button gosub "ï¬Ç∂ÇÈ", *closesetting
 
-	pos 152 - ( 8 * strlen( version )), 256
+	pos 152 - ( 8 * strlen( version )), 284
 	font iniFont, 16
 	mes "Mulancha " + version + " by "
 
-	pos 256, 254
+	pos 256, 282
 	font iniFont, 12
 	objsize 48, 20
 	button gosub "m-ushi", *gotomunet
@@ -499,10 +511,21 @@
 
 	if notemax < 8 {
 		noteadd "splash=" + settingSplash, -1, 0
+		noteadd "wheel=50" , -1, 0
+		noteadd "rotation=" + settingKeepRotation, -1, 0
+	} else : if notemax == 8 {
+		noteadd "splash=" + settingSplash, 7, 1
+		noteadd "wheel=50" , -1, 0
+		noteadd "rotation=" + settingKeepRotation, -1, 0
+	} else : if notemax == 9 {
+		noteadd "splash=" + settingSplash, 7, 1
+		noteadd "rotation=" + settingKeepRotation, -1, 0
 	} else {
 		noteadd "splash=" + settingSplash, 7, 1
+		noteadd "rotation=" + settingKeepRotation, 9, 1
 	}
 	iniSplash = settingSplash
+	iniKeepRotation = settingKeepRotation
 
 	chdir curdir
 	notesave "mlc2.ini"
