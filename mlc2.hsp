@@ -310,6 +310,7 @@ dim SHFILEINFO, 88
 		bsave "data\\root.dat", s
 		noteload "data\\root.dat"
 		noteadd "parent="                          , -1, 0
+		noteadd "rotation=0.0"                       , -1, 0
 		noteadd "[item]"                           , -1, 0
 		s = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
 		exist s
@@ -377,6 +378,7 @@ dim SHFILEINFO, 88
 
 	curdat = "root.dat"
 	parentdat = ""
+	rotationdat = ""
 
 	; タスクトレイ格納
 	gsel 0, -1
@@ -521,7 +523,13 @@ dim SHFILEINFO, 88
 
 	gsel 0, 2
 
-	if reloaddatbutnotmove == 0 :wheelrad = 0.0
+	if reloaddatbutnotmove == 0 {
+		if iniKeepRotation {
+			wheelrad = rotationdat
+		} else {
+			wheelrad = 0.0
+		}
+	}
 
 	reloaddat = 0
 	reloaddatbutnotmove = 0
@@ -644,6 +652,8 @@ dim SHFILEINFO, 88
 	return
 
 *event
+
+	gosub *writerotationdat
 
 	stick ev, 0, 1
 
@@ -878,10 +888,15 @@ dim SHFILEINFO, 88
 	}
 
 	itemLen = 0
+	rotationdat = 0.0
 	repeat noteinfo(0)
 		noteget s, cnt
 		if s == "[item]" :itemLen++
-		if strmid(s, 0, 7) == "parent=" : parentdat = strmid(s, 7, 1024)
+		if strmid(s, 0, 7) == "parent=" :parentdat = strmid(s, 7, 1024)
+		if strmid(s, 0, 9) == "rotation=" {
+			t = strmid(s, 9, 1024)
+			rotationdat = double(t)
+		}
 	loop
 
 	sdim itemName, 32, itemLen
@@ -1012,7 +1027,7 @@ dim SHFILEINFO, 88
 
 	; 新規サブメニューの場合
 	if ( argIndex == -1 )&( copymode == 0 )&( getTypeValue(editType) == "dir" )&( notMakeSubItem == 0 ) {
-		s = "parent=" + curdat
+		s = "parent=" + curdat + "\n" + "rotation=0.0"
 		bsave "data\\" + editPath, s, strlen(s)
 	}
 
@@ -1048,6 +1063,21 @@ dim SHFILEINFO, 88
 		gsel 0
 	} else {
 		gsel 3
+	}
+
+	return
+
+*writerotationdat
+	if iniKeepRotation {
+		chdir curdir
+		noteload "data\\" + curdat
+		noteget s, 1
+		if ( s == "[item]" ) {
+			noteadd "rotation=" + wheelrad, 1, 0
+		} else {
+			noteadd "rotation=" + wheelrad, 1, -1
+		}
+		notesave "data\\" + curdat
 	}
 
 	return
