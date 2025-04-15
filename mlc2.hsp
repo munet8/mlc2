@@ -143,8 +143,12 @@
 	return
 #defcfunc adjustZero22Pi double d
 	f = d
-	if f < 0 :f += 2.0 * M_PI
-	if f > ( 2.0 * M_PI ) :f -= 2.0 * M_PI
+	while f < 0
+		f += 2.0 * M_PI
+	wend
+	while f > ( 2.0 * M_PI )
+		f -= 2.0 * M_PI
+	wend
 	return f
 #defcfunc adjustPosX int j
 	f = ginfo_mx - int( j / 2 )
