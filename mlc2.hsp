@@ -210,7 +210,7 @@ dim SHFILEINFO, 88
 *firstrunproc
 
 	notesel nt
-	version = "2.1.5"
+	version = "2.2"
 
 	; どのウィンドウであれ、閉じるボタンが押された時を検出
 	onexit gosub *onclose
